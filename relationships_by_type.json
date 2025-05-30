@@ -32,7 +32,12 @@
     "Daughter",
     "Grandson",
     "Granddaughter",
-    "Godchild"
+    "Godchild",
+    "Father-in-law",
+    "Mother-in-law",
+    "Brother-in-law",
+    "Sister-in-law",
+    "In-law"
   ],
   "Friendly": [
     "Friend",
