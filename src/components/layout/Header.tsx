@@ -94,7 +94,7 @@ const Header: React.FC = () => {
             </Link>
 
             {user ? (
-              <Link to="/profile" className="flex items-center space-x-2">
+              <Link to="/userprofile" className="flex items-center space-x-2">
                 {user.profileImage ? (
                   <img 
                     src={user.profileImage} 

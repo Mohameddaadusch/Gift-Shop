@@ -1,93 +1,194 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+// src/pages/LoginPage.tsx
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
 
 const LoginPage: React.FC = () => {
-  const { login } = useApp();
-  const navigate = useNavigate();
+  const { login } = useApp()
+  const navigate = useNavigate()
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [profileImage, setProfileImage] = useState('');
-  const [age, setAge] = useState('');
-  const [hobbies, setHobbies] = useState('');
+  // toggle between login and signup
+  const [isLogin, setIsLogin] = useState(true)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // form fields
+  const [mail, setMail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [age, setAge] = useState('')
+  const [gender, setGender] = useState('')
+  const [hobbies, setHobbies] = useState('')
+  const [profileImage, setProfileImage] = useState('')
 
-    if (!name || !email || !age) {
-      alert('Please fill in all required fields.');
-      return;
+  // handle login (just email & name for now)
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mail.trim() || !name.trim()) {
+      alert('Please enter both email and name.')
+      return
     }
+    login({
+      mail: mail.trim(),
+      password: '',     // unused for demo
+      name: name.trim(),
+      age: 0,
+      gender: '',
+      hobbies: [],
+      friends: [],
+      profileImage: ''
+    })
+    navigate('/userprofile')
+  }
 
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      profileImage,
-      age: parseInt(age),
-      hobbies: hobbies.split(',').map(h => h.trim()),
-      friends: []
-    };
-
-    login(newUser);
-    navigate('/user-profile');
-  };
+  // handle signup (all fields)
+  const handleSignUp = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (
+      !mail.trim() ||
+      !password.trim() ||
+      !name.trim() ||
+      !age.trim() ||
+      !gender.trim()
+    ) {
+      alert('Please fill in all required fields.')
+      return
+    }
+    login({
+      mail: mail.trim(),
+      password: password.trim(),
+      name: name.trim(),
+      age: parseInt(age, 10),
+      gender,
+      hobbies: hobbies
+        .split(',')
+        .map(h => h.trim())
+        .filter(h => h),
+      friends: [],
+      profileImage: profileImage.trim()
+    })
+    navigate('/userprofile')
+  }
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-
-        <input
-          type="text"
-          placeholder="Name*"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-
-        <input
-          type="email"
-          placeholder="Email*"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-
-        <input
-          type="text"
-          placeholder="Profile Image URL (optional)"
-          value={profileImage}
-          onChange={(e) => setProfileImage(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-
-        <input
-          type="number"
-          placeholder="Age*"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-
-        <input
-          type="text"
-          placeholder="Hobbies (comma separated)"
-          value={hobbies}
-          onChange={(e) => setHobbies(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-
+    <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
+      {/* Toggle Buttons */}
+      <div className="flex justify-center mb-6 space-x-4">
         <button
-          type="submit"
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded"
+          onClick={() => setIsLogin(true)}
+          className={
+            isLogin
+              ? 'border-b-2 border-primary-600 text-primary-600 font-semibold'
+              : 'text-gray-600'
+          }
         >
-          Login
+          Log In
         </button>
-      </form>
-    </div>
-  );
-};
+        <button
+          onClick={() => setIsLogin(false)}
+          className={
+            !isLogin
+              ? 'border-b-2 border-primary-600 text-primary-600 font-semibold'
+              : 'text-gray-600'
+          }
+        >
+          Sign Up
+        </button>
+      </div>
 
-export default LoginPage;
+      {/* Form */}
+      {isLogin ? (
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email*"
+            value={mail}
+            onChange={e => setMail(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Name*"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition"
+          >
+            Log In
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleSignUp} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email*"
+            value={mail}
+            onChange={e => setMail(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password*"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Name*"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Age*"
+            value={age}
+            onChange={e => setAge(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          <select
+            value={gender}
+            onChange={e => setGender(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            required
+          >
+            <option value="">Select Gender*</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Hobbies (comma-separated)"
+            value={hobbies}
+            onChange={e => setHobbies(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+          <input
+            type="text"
+            placeholder="Profile Image URL"
+            value={profileImage}
+            onChange={e => setProfileImage(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+          <button
+            type="submit"
+            className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition"
+          >
+            Sign Up
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
+export default LoginPage
