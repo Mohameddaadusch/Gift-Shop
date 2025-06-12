@@ -29,7 +29,7 @@ class SuitabilityModel(nn.Module):
 
 def load_models():
     # Open porducts with embeds
-    with open('products_embeds_10k.json', 'r') as f:
+    with open('prods_embeds_100k.json', 'r') as f:
         products = json.load(f)
 
     for product in products:
