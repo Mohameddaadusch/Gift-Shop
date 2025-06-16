@@ -69,14 +69,14 @@ def encode_gender(gender):
     else:
         return [0, 0, 1]
 
-def embed_hobbies(data):
-    return torch.tensor(sbert.encode(data['hobbies']))
+def embed_hobbies(user_data):
+    return torch.tensor(sbert.encode(user_data['hobbies']))
 
-def embed_occasion(data):
-    return torch.tensor(sbert.encode([data['occasion']])[0])
+def embed_occasion(user_data):
+    return torch.tensor(sbert.encode([user_data['occasion']])[0])
 
-def embed_user_relationship(data):
-    age, gender, relationship = data['age'], data['gender'], data['relationship']
+def embed_user_relationship(user_data):
+    age, gender, relationship = user_data['age'], user_data['gender'], user_data['relationship']
     age_embed = torch.tensor([normalize_age(age)], dtype=torch.float32)
     gender_embed = torch.tensor(encode_gender(gender), dtype=torch.float32)
 
@@ -84,42 +84,43 @@ def embed_user_relationship(data):
 
     return torch.cat([age_embed, gender_embed, relationship_embed])
 
-def get_user_embed(user_data, relationship, occasion):
+def get_user_embed(user_data):
     gender = ""
     if user_data['gender'] != 'other':
         gender = user_data['gender']
-    intro = f"A gift for my {relationship.lower()}, a {user_data['age']}-year-old {gender}"
+    intro = f"A gift for my {user_data['relationship'].lower()}, a {user_data['age']}-year-old {gender}"
 
     hobbies_text = ""
     if user_data['hobbies'] != []:
         hobbies_text = f" who enjoys {', '.join(user_data['hobbies'])}"
 
-    user_text = intro + hobbies_text + f". It's for {occasion.lower()}."
+    user_text = intro + hobbies_text + f". It's for {user_data['occasion'].lower()}."
     return torch.tensor(sbert.encode([user_text])[0])
 
 
 # Filter products with embeddings similarity to users
-def filter(user_data, relationship, occasion, products, n=1000):
-    user_embed = get_user_embed(user_data, relationship, occasion)
+def filter(user_data, products, n=1000):
+    prods_in_budget = [prod for prod in products if user_data['budget'][0] <= prod['price'] <= user_data['budget'][1]]
+    user_embed = get_user_embed(user_data)
     scores = []
-    for product in products:
+    for product in prods_in_budget:
         score = F.cosine_similarity(user_embed, product['embed'], dim=0).item()
         scores.append((score, product))
-    sorted_scores = sorted(scores, key=lambda x: x[0], reverse=True)[:min(n, len(products))]
+    sorted_scores = sorted(scores, key=lambda x: x[0], reverse=True)[:min(n, len(prods_in_budget))]
     return [tup[1] for tup in sorted_scores]
 
 
 # Inference function (ranking products)
-def rank_products(data, hobbies_m, occasions_m, user_relationship_m, prods, sb):
+def rank_products(user_data, hobbies_m, occasions_m, user_relationship_m, prods, sb):
     global hobbies_model, occasions_model, user_relationship_model, products, sbert
     hobbies_model, occasions_model, user_relationship_model, products, sbert = hobbies_m, occasions_m, user_relationship_m, prods, sb
 
-    filtered = filter(data, data['relationship'], data['occasion'], products)
+    filtered = filter(user_data, products)
     with torch.no_grad():
         scores = []
-        hobbies = embed_hobbies(data)
-        occasion = embed_occasion(data)
-        user_relationship = embed_user_relationship(data)
+        hobbies = embed_hobbies(user_data)
+        occasion = embed_occasion(user_data)
+        user_relationship = embed_user_relationship(user_data)
 
         for product in filtered:
             product_embed = product['embed']

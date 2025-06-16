@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
-from typing import List
+from typing import List, Tuple
 from ranking_model import load_models, rank_products
 
 # Load models once on startup
@@ -32,6 +32,7 @@ class UserProfile(BaseModel):
     hobbies: List[str]
     relationship: str
     occasion: str
+    budget: Tuple[float, float]     # (min_cost, max_cost)
 
 @app.post("/rank")
 def get_ranked_products(profile: UserProfile):
