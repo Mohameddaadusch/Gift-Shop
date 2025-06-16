@@ -13,6 +13,8 @@
   import AllGiftsPage from './pages/AllGiftsPage';
   import RemindersPage from './pages/RemindersPage';
   import UserProfile from './pages/UserProfile';
+  import FriendsPage from './pages/FriendsPage';
+
 
 
 
@@ -36,9 +38,7 @@
             <Route path="/userprofile" element={<UserProfile />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
-
-
-
+            <Route path="friends" element={<FriendsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -10,6 +10,7 @@ export interface Gift {
 }
 
 
+
 export interface User {
   mail: string;
   password:string;
@@ -22,7 +23,7 @@ export interface User {
 }
 
 export interface Friend {
-  id: string;
+  mail: string;
   name: string;
   relationShip:string;
 }
@@ -33,14 +34,14 @@ export interface CartItem {
 }
 
 export interface Reminder {
-  id: string;
-  title: string;
-  date: string;
-  recipientName: string;
-  occasion: string;
-  notes?: string;
+  id:             string;
+  recipientName:  string;
+  occasion:       string;
+  date:           string;
+  hobbies?:      string[]; 
 }
 
+/*
 export interface Address {
   id: string;
   name: string;
@@ -51,19 +52,120 @@ export interface Address {
   country: string;
   isDefault: boolean;
 }
-
+*/
 export type OccasionType = 
-  | 'birthday'
-  | 'anniversary'
-  | 'wedding'
-  | 'graduation'
-  | 'housewarming'
-  | 'babyshower'
-  | 'christmas'
-  | 'valentines'
-  | 'mothers-day'
-  | 'fathers-day'
-  | 'other';
+  "Administrative"|
+  "Anniversary"|
+  "Baby Shower"|
+  "Back to School"|
+  "Baptism"|
+  "Bar Mitzvah"|
+  "Bat Mitzvah"|
+  "Birthday"|
+  "Bridal Shower"|
+  "Chinese New Year"|
+  "Christmas"|
+  "Clergy Appreciation"|
+  "Confirmation"|
+  "Congratulations"|
+  "Diwali"|
+  "Easter"|
+  "Eid al-Fitr"|
+  "Encouragement"|
+  "Engagement"|
+  "Father's Day"|
+  "First Communion"|
+  "Friendship"|
+  "Get Well"|
+  "Good Luck"|
+  "Goodbye"|
+  "Graduation"|
+  "Grandparents Day"|
+  "Halloween"|
+  "Hanukkah"|
+  "Pride"|
+  "Housewarming"|
+  "Independence Day"|
+  "Love"|
+  "Military Appreciation"|
+  "Miss You"|
+  "Mother's Day"|
+  "National Boss Day"|
+  "New Baby"|
+  "New Year's"|
+  "Nurses Day"|
+  "Passover"|
+  "Pregnancy"|
+  "Professionals Day"|
+  "Retirement"|
+  "Rosh Hashanah"|
+  "St. Patrick's Day"|
+  "Sweetest Day"|
+  "Teacher Appreciation"|
+  "Thank You"|
+  "Thanksgiving"|
+  "Thinking of You"|
+  "Valentine's Day"|
+  "Veterans Day"|
+  "Wedding"|
+  'other';
+
+export const OCCASIONS: OccasionType[] = [
+  "Administrative",
+  "Anniversary",
+  "Baby Shower",
+  "Back to School",
+  "Baptism",
+  "Bar Mitzvah",
+  "Bat Mitzvah",
+  "Birthday",
+  "Bridal Shower",
+  "Chinese New Year",
+  "Christmas",
+  "Clergy Appreciation",
+  "Confirmation",
+  "Congratulations",
+  "Diwali",
+  "Easter",
+  "Eid al-Fitr",
+  "Encouragement",
+  "Engagement",
+  "Father's Day",
+  "First Communion",
+  "Friendship",
+  "Get Well",
+  "Good Luck",
+  "Goodbye",
+  "Graduation",
+  "Grandparents Day",
+  "Halloween",
+  "Hanukkah",
+  "Pride",
+  "Housewarming",
+  "Independence Day",
+  "Love",
+  "Military Appreciation",
+  "Miss You",
+  "Mother's Day",
+  "National Boss Day",
+  "New Baby",
+  "New Year's",
+  "Nurses Day",
+  "Passover",
+  "Pregnancy",
+  "Professionals Day",
+  "Retirement",
+  "Rosh Hashanah",
+  "St. Patrick's Day",
+  "Sweetest Day",
+  "Teacher Appreciation",
+  "Thank You",
+  "Thanksgiving",
+  "Thinking of You",
+  "Valentine's Day",
+  "Veterans Day",
+  "Wedding",
+];
 
 export interface Category {
   id: string;
