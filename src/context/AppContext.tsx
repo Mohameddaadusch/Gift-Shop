@@ -126,18 +126,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // — Stubs / placeholders for other methods (implement as you wish) —
-  const addToCart = (gift: Gift, quantity = 1) => { /* … */ };
-  const removeFromCart = (giftId: string) => { /* … */ };
-  const updateCartQuantity = (giftId: string, quantity: number) => { /* … */ };
-  const addToWishlist = (gift: Gift) => { /* … */ };
-  const removeFromWishlist = (giftId: string) => { /* … */ };
+    const addToCart = (gift: Gift, quantity = 1) => {
+      setCart(prevCart => {
+        const existingItem = prevCart.find(item => item.gift.id === gift.id);
+        
+        if (existingItem) {
+          return prevCart.map(item => 
+            item.gift.id === gift.id 
+              ? { ...item, quantity: item.quantity + quantity } 
+              : item
+          );
+        } else {
+          return [...prevCart, { gift, quantity }];
+        }
+      });
+    };
+    const removeFromCart = (giftId: string) => {
+    setCart(prevCart => prevCart.filter(item => item.gift.id !== giftId));
+  };
+    const updateCartQuantity = (giftId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(giftId);
+      return;
+    }
+    
+    setCart(prevCart => 
+      prevCart.map(item => 
+        item.gift.id === giftId ? { ...item, quantity } : item
+      )
+    );
+  };
+  const addToWishlist = (gift: Gift) => {
+    setWishlist(prevWishlist => {
+      const isAlreadyInWishlist = prevWishlist.some(item => item.id === gift.id);
+      if (isAlreadyInWishlist) return prevWishlist;
+      return [...prevWishlist, gift];
+    });
+  };
+
+  const removeFromWishlist = (giftId: string) => {
+    setWishlist(prevWishlist => prevWishlist.filter(gift => gift.id !== giftId));
+  };
 
   const login = (userData: User) => setUser(userData);
   const logout = () => setUser(null);
 
   const getRecommendedGifts = (
     occasion?: string,
-    priceRange?: { min: number; max: number },
+  priceRange?: { min: number; max: number },
     profileUser?: User
   ): Gift[] => {
     let recs = [...gifts];

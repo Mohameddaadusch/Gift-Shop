@@ -64,11 +64,10 @@ const AdvancedSearchPage: React.FC = () => {
   // run recommendations + price
   const results: Gift[] = useMemo(() => {
     if (!occasion && interests.length === 0) return [];
-    let recs = getRecommendedGifts(occasion, interests);
-    if (priceRange) {
-      const pr = priceRanges.find(p => p.id === priceRange)!;
-      recs = recs.filter(g => g.price >= pr.min && g.price <= pr.max);
-    }
+
+    const selectedPrice = priceRanges.find(p => p.id === priceRange); 
+    let recs = getRecommendedGifts(occasion, selectedPrice, user ?? undefined);
+
     return recs;
   }, [occasion, interests, priceRange, getRecommendedGifts]);
 
