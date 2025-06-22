@@ -1,0 +1,55 @@
+Occasion,Likely Gender,Likely Age Groups,Likely Relationship
+Administrative,other,"Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Work
+Anniversary,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Romantic"
+Baby Shower,Female,"Young Adult (19-30), Adult (31-50)","Family, Friendly, Romantic"
+Back to School,other,"Child (1-12), Teen (13-18)","Friendly, Education"
+Baptism,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50)","Family, Friendly, Other"
+Bar Mitzvah,Male,Teen (13-18),"Family, Friendly, Other"
+Bat Mitzvah,Female,Child (1-12),"Family, Friendly, Other"
+Birthday,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Bridal Shower,Female,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Chinese New Year,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Christmas,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Clergy Appreciation,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Other
+Confirmation,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Other"
+Congratulations,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Household, Work, Social, Other"
+Diwali,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Household, Work, Social, Other"
+Easter,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Household, Work, Social, Other"
+Eid al-Fitr,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Encouragement,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Engagement,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Father's Day,Male,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Family
+First Communion,other,Child (1-12),Family
+Friendship,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly"
+Get Well,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Good Luck,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Household, Work, Social, Other"
+Goodbye,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Graduation,other,"Teen (13-18), Young Adult (19-30)","Family, Friendly, Romantic, Other"
+Grandparents Day,other,"Adult (31-50), Senior (51-70), Elder (71-100)",Family
+Halloween,other,"Child (1-12), Teen (13-18)","Family, Friendly, Romantic, Work"
+Hanukkah,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Pride,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Housewarming,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Independence Day,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Social"
+Love,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Military Appreciation,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Education, Work, Social, Other"
+Miss You,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Friendly, Romantic"
+Mother's Day,Female,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Family
+National Boss Day,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Work
+New Baby,other,"Young Adult (19-30), Adult (31-50)","Family, Friendly"
+New Year's,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Nurses Day,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Work, Other"
+Passover,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Pregnancy,Female,"Young Adult (19-30), Adult (31-50)","Family, Friendly, Romantic"
+Professionals Day,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Work
+Retirement,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Rosh Hashanah,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Work"
+St. Patrick's Day,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Sweetest Day,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Romantic, Friendly"
+Teacher Appreciation,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)",Education
+Thank You,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Thanksgiving,other,"Child (1-12), Teen (13-18), Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
+Thinking of You,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic"
+Valentine's Day,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Friendly, Romantic"
+Veterans Day,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Education, Work, Social, Other"
+Wedding,other,"Young Adult (19-30), Adult (31-50), Senior (51-70), Elder (71-100)","Family, Friendly, Romantic, Education, Household, Work, Social, Other"
