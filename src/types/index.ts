@@ -9,8 +9,6 @@ export interface Gift {
   link: string; 
 }
 
-
-
 export interface User {
   mail: string;
   password:string;

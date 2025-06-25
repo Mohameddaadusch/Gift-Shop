@@ -6,6 +6,7 @@ import GiftCard from '../components/common/GiftCard';
 import { Gift, OccasionType, OCCASIONS } from '../types';
 
 const priceRanges = [
+  { id: 'no budget', label: 'No Budget', min: 0, max: Infinity},
   { id: 'under-25',  label: 'Under $25',   min: 0,    max: 25 },
   { id: '25-50',     label: '$25 - $50',   min: 25,   max: 50 },
   { id: '50-100',    label: '$50 - $100',  min: 50,   max: 100 },

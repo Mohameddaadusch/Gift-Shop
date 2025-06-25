@@ -2,9 +2,9 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { User } from '../types'
 
 const LoginPage: React.FC = () => {
-  const { login } = useApp()
   const navigate = useNavigate()
 
   // toggle between login and signup
@@ -20,27 +20,37 @@ const LoginPage: React.FC = () => {
   const [profileImage, setProfileImage] = useState('')
 
   // handle login (just email & name for now)
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!mail.trim() || !name.trim()) {
-      alert('Please enter both email and name.')
+    if (!mail.trim() || !password.trim()) {
+      alert('Please enter both email and password.')
       return
     }
-    login({
-      mail: mail.trim(),
-      password: '',     // unused for demo
-      name: name.trim(),
-      age: 0,
-      gender: '',
-      hobbies: [],
-      friends: [],
-      profileImage: ''
-    })
+
+    var data;
+
+    try{
+      const response = await fetch('http://localhost:3001/api/signin', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({mail: mail.trim(), password: password.trim()})
+          });
+
+          data = await response.json();
+
+          console.log(response.status);
+          
+        } catch (err) {
+          console.log("error");
+        }
+
     navigate('/userprofile')
   }
 
   // handle signup (all fields)
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     if (
       !mail.trim() ||
@@ -52,20 +62,40 @@ const LoginPage: React.FC = () => {
       alert('Please fill in all required fields.')
       return
     }
-    login({
-      mail: mail.trim(),
-      password: password.trim(),
-      name: name.trim(),
-      age: parseInt(age, 10),
-      gender,
-      hobbies: hobbies
-        .split(',')
-        .map(h => h.trim())
-        .filter(h => h),
-      friends: [],
-      profileImage: profileImage.trim()
-    })
-    navigate('/userprofile')
+    console.log("handling singup");
+
+    var data;
+
+    try {
+          const user : User = {
+            mail: mail.trim(),
+            password: password.trim(), //hash
+            name: name.trim(),
+            age: parseInt(age, 10),
+            gender: gender,
+            hobbies: hobbies
+              .split(',')
+              .map(h => h.trim())
+              .filter(h => h), 
+            friends: [],
+            profileImage: profileImage.trim()
+          }
+          const response = await fetch('http://localhost:3001/api/signup', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(user)
+          });
+
+          data = await response.json();
+
+          console.log(data.message);
+          
+        } catch (err) {
+          console.log("error");
+        }
+        navigate('/userprofile')
   }
 
   return (
@@ -106,10 +136,10 @@ const LoginPage: React.FC = () => {
             required
           />
           <input
-            type="text"
-            placeholder="Name*"
-            value={name}
-            onChange={e => setName(e.target.value)}
+            type="password"
+            placeholder="Password*"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
             className="w-full border rounded px-3 py-2"
             required
           />
