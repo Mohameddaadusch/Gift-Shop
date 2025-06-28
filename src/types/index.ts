@@ -9,9 +9,14 @@ export interface Gift {
   link: string; 
 }
 
+export interface LoginCredentials{
+  mail: string;
+  password: string;
+}
+
 export interface User {
   mail: string;
-  password:string;
+  password: string;
   name: string;
   age: number;
   gender:string;

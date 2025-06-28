@@ -7,6 +7,8 @@ import { User } from '../types'
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
 
+  const { login } = useApp(); // Use the login function from your context
+
   // toggle between login and signup
   const [isLogin, setIsLogin] = useState(true)
 
@@ -27,27 +29,15 @@ const LoginPage: React.FC = () => {
       return
     }
 
-    var data;
-
-    try{
-      const response = await fetch('http://localhost:3001/api/signin', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({mail: mail.trim(), password: password.trim()})
-          });
-
-          data = await response.json();
-
-          console.log(response.status);
-          
-        } catch (err) {
-          console.log("error");
-        }
-
-    navigate('/userprofile')
-  }
+    try {
+      // Call the login function from AppContext
+      await login({ mail: mail.trim(), password: password.trim() });
+      navigate('/userprofile'); // Navigate on success
+    } catch (err: any) {
+      // setError(err.message || 'An unknown error occurred.');
+      console.error(err);
+    }
+  };
 
   // handle signup (all fields)
   const handleSignUp = async (e: React.FormEvent) => {
@@ -63,8 +53,6 @@ const LoginPage: React.FC = () => {
       return
     }
     console.log("handling singup");
-
-    var data;
 
     try {
           const user : User = {
@@ -88,10 +76,12 @@ const LoginPage: React.FC = () => {
               body: JSON.stringify(user)
           });
 
-          data = await response.json();
+          const data = await response.json();
 
-          console.log(data.message);
-          
+          if (!response.ok) {
+            throw new Error(data.message || 'Failed to sign up.');
+          }
+  
         } catch (err) {
           console.log("error");
         }

@@ -16,7 +16,7 @@ const UserProfile: React.FC = () => {
   }
 
   // friendly counts
-  const friendCount = user.friends.length;
+  // const friendCount = user.friends.length;
   const reminderCount = reminders.length;
 
   return (
@@ -49,7 +49,7 @@ const UserProfile: React.FC = () => {
           <div className="flex flex-col items-center">
             <Users size={24} className="text-primary-600 mb-2" />
             <span className="text-sm font-medium text-gray-600">Friends</span>
-            <span className="mt-1 text-xl font-bold text-gray-900">{friendCount}</span>
+            <span className="mt-1 text-xl font-bold text-gray-900">{69}</span>
           </div>
           <div className="flex flex-col items-center">
             <Gift size={24} className="text-primary-600 mb-2" />
@@ -84,7 +84,7 @@ const UserProfile: React.FC = () => {
                 <span>Manage Friends</span>
               </Link>
           </div>
-          {user.friends.length > 0 ? (
+          {/* {user.friends.length > 0 ? (
             <ul className="flex flex-wrap gap-4">
               {user.friends.map((f) => (
                 <li
@@ -100,7 +100,7 @@ const UserProfile: React.FC = () => {
             </ul>
           ) : (
             <p className="text-gray-500">You have no friends yet.</p>
-          )}
+          )} */}
         </div>
 
         {/* Reminders CTA */}

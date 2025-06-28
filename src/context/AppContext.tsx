@@ -7,9 +7,11 @@ import React, {
   useEffect,
   ReactNode
 } from 'react';
-import { Gift, User, CartItem, Reminder, Friend } from '../types';
+import { Gift, User, CartItem, Reminder, Friend, LoginCredentials } from '../types';
 import { mockGifts } from '../data/mockData';
-import { mockUsers } from '../data/mockUsers';
+// import { mockUsers } from '../data/mockUsers';
+
+const API_URL = 'http://localhost:3001';
 
 interface AppContextType {
   gifts: Gift[];
@@ -36,8 +38,8 @@ interface AppContextType {
   removeReminder: (reminderId: string) => void;
 
   /* auth */
-  login: (user: User) => void;
-  logout: () => void;
+  login: (credentials: LoginCredentials) => Promise<void>; 
+  logout: () => Promise<void>;
 
   /* recommendations */
   getRecommendedGifts: (
@@ -59,15 +61,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // — Load initial data: gifts, users, and localStorage —
   useEffect(() => {
-    const fetchData = async () => {
+    const checkSession  = async () => {
       setIsLoading(true);
       try {
         setGifts(mockGifts);
-        setUsers(mockUsers);
+        // setUsers(mockUsers);
 
-        // restore user+cart+wishlist+reminders from localStorage
-        const sUser = localStorage.getItem('user');
-        if (sUser) setUser(JSON.parse(sUser));
+        const response = await fetch(`${API_URL}/api/me`, {
+          credentials: 'include', // Important: sends cookies
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user); // Set user if session exists
+        }
 
         const sCart = localStorage.getItem('cart');
         if (sCart) setCart(JSON.parse(sCart));
@@ -83,7 +90,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setIsLoading(false);
       }
     };
-    fetchData();
+    checkSession();
   }, []);
 
   // — Persist cart, wishlist, reminders, and user whenever they change —
@@ -99,10 +106,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.setItem('reminders', JSON.stringify(reminders));
   }, [reminders]);
 
-  useEffect(() => {
-    if (user) localStorage.setItem('user', JSON.stringify(user));
-    else localStorage.removeItem('user');
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) localStorage.setItem('user', JSON.stringify(user));
+  //   else localStorage.removeItem('user');
+  // }, [user]);
 
   // — Friend management —
   const addFriend = (friend: Friend) => {
@@ -168,8 +175,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setWishlist(prevWishlist => prevWishlist.filter(gift => gift.id !== giftId));
   };
 
-  const login = (userData: User) => setUser(userData);
-  const logout = () => setUser(null);
+
+  const login = async (credentials: LoginCredentials) => {
+    const response = await fetch(`${API_URL}/api/signin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setUser(data.user);
+    } else {
+      // You can throw an error to be caught by the component calling login
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to login');
+    }
+  };
+
+  
+  const logout = async () => {
+    const response = await fetch(`${API_URL}/api/logout`, {
+      method: 'POST',
+       credentials: 'include', // Important: sends cookies
+    });
+
+    if (response.ok) {
+      setUser(null);
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to logout');
+    }
+  };
 
   const getRecommendedGifts = (
     occasion?: string,
