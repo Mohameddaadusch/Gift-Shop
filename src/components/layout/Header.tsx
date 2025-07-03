@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link} from 'react-router-dom';
 import { ShoppingCart, Heart, User, Gift, Bell } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useApp, useAuth } from '../../context/AppContext';
 
 const Header: React.FC = () => {
-  const { cart, wishlist, user } = useApp();
+  const { cart, wishlist } = useApp();
+  const { currentUser } = useAuth();
+  const { userData } = useApp();
   const [isScrolled, setIsScrolled] = useState(false);
 
   // Handle scroll events
@@ -93,20 +95,16 @@ const Header: React.FC = () => {
               <Bell size={22} />
             </Link>
 
-            {user ? (
+            {currentUser ? (
               <Link to="/userprofile" className="flex items-center space-x-2">
-                {user.profileImage ? (
-                  <img 
-                    src={user.profileImage} 
-                    alt={user.name} 
-                    className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center">
-                    <span className="text-sm font-medium">{user.name.charAt(0)}</span>
-                  </div>
-                )}
-                <span className="text-sm font-medium hidden lg:block">{user.name}</span>
+                <div className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center">
+                  <span className="text-sm font-medium">
+                    {(userData?.name || currentUser.displayName || currentUser.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-sm font-medium hidden lg:block">
+                  {userData?.name || currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
+                </span>
               </Link>
             ) : (
               <Link 

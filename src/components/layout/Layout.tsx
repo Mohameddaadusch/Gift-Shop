@@ -1,12 +1,12 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
-import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AppContext';
 
 const Layout: React.FC = () => {
-  const { isLoading } = useApp();
+  const { loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

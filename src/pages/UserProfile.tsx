@@ -1,19 +1,48 @@
 // src/pages/UserProfile.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Calendar, Users, Gift, Settings } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Calendar, Users, Gift, LogOut } from 'lucide-react';
+import { useAuth, useApp } from '../context/AppContext';
 
 const UserProfile: React.FC = () => {
-  const { user, reminders } = useApp();
+  const { currentUser, loading: authLoading, logout } = useAuth();
+  const { userData, reminders } = useApp();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const navigate = useNavigate();
 
-  if (!user) {
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="mt-20 text-center text-gray-500">
+        Loading profile...
+      </div>
+    );
+  }
+
+  if (!currentUser) {
     return (
       <div className="mt-20 text-center text-gray-500">
         Please log in to view your profile.
       </div>
     );
   }
+
+  // Get display name from Firebase user or Firestore data
+  const displayName = userData?.name || currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+  const displayEmail = currentUser.email || userData?.mail || '';
+  const displayAge = userData?.age || 'Not specified';
+  const displayHobbies = userData?.hobbies || [];
 
   // friendly counts
   // const friendCount = user.friends.length;
@@ -27,14 +56,26 @@ const UserProfile: React.FC = () => {
           className="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-3xl font-bold"
           title="Profile picture"
         >
-          {user.name.charAt(0)}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h1 className="text-4xl font-extrabold">{user.name}</h1>
+          <h1 className="text-4xl font-extrabold">{displayName}</h1>
           <div className="mt-1 flex items-center space-x-2 text-sm opacity-90">
             <Mail size={16} />
-            <span>{user.mail}</span>
+            <span>{displayEmail}</span>
           </div>
+        </div>
+        <div className="flex flex-col items-end space-y-2">
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 hover:bg-white/30 
+                       disabled:bg-white/10 disabled:cursor-not-allowed text-white font-medium 
+                       rounded-lg transition-colors"
+          >
+            <LogOut size={18} />
+            <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+          </button>
         </div>
       </div>
 
@@ -44,7 +85,7 @@ const UserProfile: React.FC = () => {
           <div className="flex flex-col items-center">
             <Calendar size={24} className="text-primary-600 mb-2" />
             <span className="text-sm font-medium text-gray-600">Age</span>
-            <span className="mt-1 text-xl font-bold text-gray-900">{user.age}</span>
+            <span className="mt-1 text-xl font-bold text-gray-900">{displayAge}</span>
           </div>
           <div className="flex flex-col items-center">
             <Users size={24} className="text-primary-600 mb-2" />
@@ -61,9 +102,9 @@ const UserProfile: React.FC = () => {
         {/* Hobbies */}
         <div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Hobbies</h2>
-          {user.hobbies.length > 0 ? (
+          {displayHobbies.length > 0 ? (
             <ul className="list-disc list-inside space-y-1 text-gray-700">
-              {user.hobbies.map((hobby, i) => (
+              {displayHobbies.map((hobby: string, i: number) => (
                 <li key={i}>{hobby}</li>
               ))}
             </ul>

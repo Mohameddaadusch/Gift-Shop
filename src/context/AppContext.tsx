@@ -5,15 +5,37 @@ import React, {
   useContext,
   useState,
   useEffect,
-  ReactNode
+  ReactNode,
+  useCallback
 } from 'react';
+import { 
+  User as FirebaseUser,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth } from '../config/firebase';
 import { Gift, User, CartItem, Reminder, Friend, LoginCredentials } from '../types';
 import { mockGifts } from '../data/mockData';
+import { getUserData, UserData } from '../services/userService';
 // import { mockUsers } from '../data/mockUsers';
 
 const API_URL = 'http://localhost:3001';
 
 interface AppContextType {
+  // Firebase Auth
+  currentUser: FirebaseUser | null;
+  authLoading: boolean;
+  firebaseLogin: (email: string, password: string) => Promise<void>;
+  firebaseSignup: (email: string, password: string) => Promise<void>;
+  firebaseLogout: () => Promise<void>;
+  
+  // User Data from Firestore
+  userData: UserData | null;
+  refreshUserData: () => Promise<void>;
+  
+  // Existing App State
   gifts: Gift[];
   user: User | null;
   users: User[];
@@ -37,7 +59,7 @@ interface AppContextType {
   addReminder: (reminder: Reminder) => void;
   removeReminder: (reminderId: string) => void;
 
-  /* auth */
+  /* legacy auth - keeping for backward compatibility */
   login: (credentials: LoginCredentials) => Promise<void>; 
   logout: () => Promise<void>;
 
@@ -46,11 +68,18 @@ interface AppContextType {
     occasion?: string,
     priceRange?: { min: number; max: number },
     user?: User
-  ) => Gift[];}
+  ) => Gift[];
+}
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Firebase Auth State
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  
+  // Existing App State
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -208,6 +237,57 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // Firebase Auth Functions
+  const firebaseLogin = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const firebaseSignup = async (email: string, password: string) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  const firebaseLogout = async () => {
+    await signOut(auth);
+    // Clear app data on logout
+    setUserData(null);
+    setUser(null);
+    setReminders([]);
+  };
+
+  // Fetch user data from Firestore
+  const refreshUserData = useCallback(async () => {
+    if (currentUser) {
+      try {
+        const data = await getUserData(currentUser.uid);
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+  }, [currentUser]);
+
+  // Firebase Auth State Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setAuthLoading(false);
+      
+      if (!user) {
+        // Clear app data when user logs out
+        setUserData(null);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Load user data when Firebase user changes
+  useEffect(() => {
+    if (currentUser && !authLoading) {
+      refreshUserData();
+    }
+  }, [currentUser, authLoading, refreshUserData]);
+
   const getRecommendedGifts = (
     occasion?: string,
   priceRange?: { min: number; max: number },
@@ -259,6 +339,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return recs;
   };
   const value: AppContextType = {
+    // Firebase Auth
+    currentUser,
+    authLoading,
+    firebaseLogin,
+    firebaseSignup,
+    firebaseLogout,
+    
+    // User Data
+    userData,
+    refreshUserData,
+    
+    // Existing App State
     gifts,
     users,
     user,
@@ -280,11 +372,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     getRecommendedGifts
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={value}>{!authLoading && children}</AppContext.Provider>;
 };
 
 export const useApp = () => {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
+};
+
+// Convenience hook for Firebase auth (backward compatibility with AuthContext)
+export const useAuth = () => {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useAuth must be used within AppProvider');
+  return {
+    currentUser: ctx.currentUser,
+    loading: ctx.authLoading,
+    login: ctx.firebaseLogin,
+    signup: ctx.firebaseSignup,
+    logout: ctx.firebaseLogout
+  };
 };

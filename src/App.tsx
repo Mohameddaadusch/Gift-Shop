@@ -13,31 +13,27 @@
   import UserProfile from './pages/UserProfile';
   import FriendsPage from './pages/FriendsPage';
 
-
-
-
-
   function App() {
     return (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="wishlist" element={<WishlistPage />} />
-            <Route path="cart" element={<CartPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-            <Route path="/advanced-search" element={<AdvancedSearchPage />} />
-            <Route path="/all-gifts" element={<AllGiftsPage />} />
-            <Route path="/reminders" element={<RemindersPage />} />
-            <Route path="/userprofile" element={<UserProfile />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="wishlist" element={<WishlistPage />} />
-            <Route path="friends" element={<FriendsPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          <Route index element={<HomePage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/advanced-search" element={<AdvancedSearchPage />} />
+          <Route path="/all-gifts" element={<AllGiftsPage />} />
+          <Route path="/reminders" element={<RemindersPage />} />
+          <Route path="/userprofile" element={<UserProfile />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
+          <Route path="friends" element={<FriendsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
     );
   }
 
