@@ -10,7 +10,7 @@ interface GiftCardProps {
 }
 
 const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
-  const { addToCart, addToWishlist, wishlist } = useApp();
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useApp();
   
   const isInWishlist = wishlist.some(item => item.id === gift.id);
   
@@ -30,9 +30,17 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
         
         <div className="absolute top-2 right-2 flex flex-col space-y-2">
           <button 
-            onClick={(e) => {
+            onClick={async (e) => {
               e.preventDefault();
-              addToWishlist(gift);
+              try {
+                if (isInWishlist) {
+                  await removeFromWishlist(gift.id);
+                } else {
+                  await addToWishlist(gift);
+                }
+              } catch (error) {
+                console.error('Error updating wishlist:', error);
+              }
             }}
             className="bg-white text-gray-700 hover:text-accent-500 rounded-full p-2 shadow-soft transition-colors duration-200"
             aria-label="Add to wishlist"

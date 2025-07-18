@@ -16,12 +16,19 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { Gift, User, CartItem, Reminder, Friend, LoginCredentials } from '../types';
+import { Gift, UserData, CartItem, Reminder, Friend } from '../types';
 import { mockGifts } from '../data/mockData';
-import { getUserData, UserData } from '../services/userService';
+import { 
+  getUserData,
+  getAllUsers, 
+  addFriendToUser, 
+  removeFriendFromUser,
+  addReminderToUser,
+  removeReminderFromUser,
+  addGiftToWishlist,
+  removeGiftFromWishlist
+} from '../services/userService';
 // import { mockUsers } from '../data/mockUsers';
-
-const API_URL = 'http://localhost:3001';
 
 interface AppContextType {
   // Firebase Auth
@@ -35,39 +42,37 @@ interface AppContextType {
   userData: UserData | null;
   refreshUserData: () => Promise<void>;
   
+  // All Users for Friends functionality
+  users: UserData[];
+  refreshUsers: () => Promise<void>;
+  
+  // Friend Management
+  addFriend: (friend: Friend) => Promise<void>;
+  removeFriend: (friendEmail: string) => Promise<void>;
+  
   // Existing App State
   gifts: Gift[];
-  user: User | null;
-  users: User[];
   cart: CartItem[];
   wishlist: Gift[];
   reminders: Reminder[];
   isLoading: boolean;
 
-  /* friend management */
-  addFriend: (friend: Friend) => void;
-  removeFriend: (email: string) => void;
-
   /* cart/wishlist omitted for brevity… */
   addToCart: (gift: Gift, quantity?: number) => void;
   removeFromCart: (giftId: string) => void;
   updateCartQuantity: (giftId: string, quantity: number) => void;
-  addToWishlist: (gift: Gift) => void;
-  removeFromWishlist: (giftId: string) => void;
+  addToWishlist: (gift: Gift) => Promise<void>;
+  removeFromWishlist: (giftId: string) => Promise<void>;
 
   /* reminders */
-  addReminder: (reminder: Reminder) => void;
-  removeReminder: (reminderId: string) => void;
-
-  /* legacy auth - keeping for backward compatibility */
-  login: (credentials: LoginCredentials) => Promise<void>; 
-  logout: () => Promise<void>;
+  addReminder: (reminder: Reminder) => Promise<void>;
+  removeReminder: (reminderId: string) => Promise<void>;
 
   /* recommendations */
   getRecommendedGifts: (
     occasion?: string,
     priceRange?: { min: number; max: number },
-    user?: User
+    user?: UserData
   ) => Gift[];
 }
 
@@ -79,87 +84,64 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [authLoading, setAuthLoading] = useState(true);
   const [userData, setUserData] = useState<UserData | null>(null);
   
+  // Users for Friends functionality
+  const [users, setUsers] = useState<UserData[]>([]);
+  
   // Existing App State
   const [gifts, setGifts] = useState<Gift[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<Gift[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // — Load initial data: gifts, users, and localStorage —
+  // Computed reminders from userData
+  const reminders = userData?.reminders || [];
+
+  // — Load initial data: gifts and localStorage for non-authenticated state —
   useEffect(() => {
-    const checkSession  = async () => {
+    const loadInitialData = async () => {
       setIsLoading(true);
       try {
         setGifts(mockGifts);
-        // setUsers(mockUsers);
-
-        const response = await fetch(`${API_URL}/api/me`, {
-          credentials: 'include', // Important: sends cookies
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user); // Set user if session exists
-        }
 
         const sCart = localStorage.getItem('cart');
         if (sCart) setCart(JSON.parse(sCart));
 
-        const sWish = localStorage.getItem('wishlist');
-        if (sWish) setWishlist(JSON.parse(sWish));
-
-        const sRem = localStorage.getItem('reminders');
-        if (sRem) setReminders(JSON.parse(sRem));
+        // Only load wishlist from localStorage if user is not authenticated
+        // When authenticated, wishlist will be loaded from Firestore via userData
+        if (!currentUser) {
+          const sWish = localStorage.getItem('wishlist');
+          if (sWish) setWishlist(JSON.parse(sWish));
+        }
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error('Error loading data:', err);
       } finally {
         setIsLoading(false);
       }
     };
-    checkSession();
-  }, []);
+    loadInitialData();
+  }, [currentUser]);
 
-  // — Persist cart, wishlist, reminders, and user whenever they change —
+  // — Persist cart and wishlist whenever they change —
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Only persist wishlist to localStorage if user is not authenticated
   useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (!currentUser) {
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    }
+  }, [wishlist, currentUser]);
 
+  // Update local wishlist state when userData changes (from Firestore)
   useEffect(() => {
-    localStorage.setItem('reminders', JSON.stringify(reminders));
-  }, [reminders]);
-
-  // useEffect(() => {
-  //   if (user) localStorage.setItem('user', JSON.stringify(user));
-  //   else localStorage.removeItem('user');
-  // }, [user]);
-
-  // — Friend management —
-  const addFriend = (friend: Friend) => {
-    if (!user) return;
-    setUser({ ...user, friends: [...user.friends, friend] });
-  };
-  const removeFriend = (email: string) => {
-    if (!user) return;
-    setUser({
-      ...user,
-      friends: user.friends.filter(f => f.mail !== email)
-    });
-  };
-
-  // — Reminder management (fixed!) —
-  const addReminder = (reminder: Reminder) => {
-    setReminders(rs => [...rs, reminder]);
-  };
-  const removeReminder = (reminderId: string) => {
-    setReminders(rs => rs.filter(r => r.id !== reminderId));
-  };
+    if (userData && userData.wishlist) {
+      setWishlist(userData.wishlist);
+    } else if (currentUser && userData) {
+      // User is authenticated but has no wishlist in Firestore
+      setWishlist([]);
+    }
+  }, [userData, currentUser]);
 
   // — Stubs / placeholders for other methods (implement as you wish) —
     const addToCart = (gift: Gift, quantity = 1) => {
@@ -192,50 +174,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       )
     );
   };
-  const addToWishlist = (gift: Gift) => {
-    setWishlist(prevWishlist => {
-      const isAlreadyInWishlist = prevWishlist.some(item => item.id === gift.id);
-      if (isAlreadyInWishlist) return prevWishlist;
-      return [...prevWishlist, gift];
-    });
-  };
-
-  const removeFromWishlist = (giftId: string) => {
-    setWishlist(prevWishlist => prevWishlist.filter(gift => gift.id !== giftId));
-  };
-
-
-  const login = async (credentials: LoginCredentials) => {
-    const response = await fetch(`${API_URL}/api/signin`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setUser(data.user);
-    } else {
-      // You can throw an error to be caught by the component calling login
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to login');
-    }
-  };
-
-  
-  const logout = async () => {
-    const response = await fetch(`${API_URL}/api/logout`, {
-      method: 'POST',
-       credentials: 'include', // Important: sends cookies
-    });
-
-    if (response.ok) {
-      setUser(null);
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to logout');
-    }
-  };
 
   // Firebase Auth Functions
   const firebaseLogin = async (email: string, password: string) => {
@@ -250,8 +188,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     await signOut(auth);
     // Clear app data on logout
     setUserData(null);
-    setUser(null);
-    setReminders([]);
+    setWishlist([]);
+    // Clear localStorage wishlist
+    localStorage.removeItem('wishlist');
   };
 
   // Fetch user data from Firestore
@@ -265,6 +204,127 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
   }, [currentUser]);
+
+  // Fetch all users from Firestore
+  const refreshUsers = async () => {
+    try {
+      console.log('Fetching all users from Firestore...');
+      const allUsers = await getAllUsers();
+      console.log('Users fetched:', allUsers.length, allUsers);
+      
+      if (allUsers.length === 0) {
+        console.warn('No users found in Firestore. This might be expected if no users have signed up yet.');
+      }
+      
+      setUsers(allUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Set empty array on error to prevent undefined issues
+      setUsers([]);
+    }
+  };
+
+  // Add friend to current user
+  const addFriend = useCallback(async (friend: Friend) => {
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      await addFriendToUser(currentUser.uid, friend);
+      // Refresh user data to get updated friends list
+      await refreshUserData();
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      throw error;
+    }
+  }, [currentUser, refreshUserData]);
+
+  // Remove friend from current user
+  const removeFriend = useCallback(async (friendEmail: string) => {
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      await removeFriendFromUser(currentUser.uid, friendEmail);
+      // Refresh user data to get updated friends list
+      await refreshUserData();
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      throw error;
+    }
+  }, [currentUser, refreshUserData]);
+
+  // Reminder Management (using Firestore)
+  const addReminder = useCallback(async (reminder: Reminder) => {
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      await addReminderToUser(currentUser.uid, reminder);
+      // Refresh user data to get updated reminders list
+      await refreshUserData();
+    } catch (error) {
+      console.error('Error adding reminder:', error);
+      throw error;
+    }
+  }, [currentUser, refreshUserData]);
+
+  const removeReminder = useCallback(async (reminderId: string) => {
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      await removeReminderFromUser(currentUser.uid, reminderId);
+      // Refresh user data to get updated reminders list
+      await refreshUserData();
+    } catch (error) {
+      console.error('Error removing reminder:', error);
+      throw error;
+    }
+  }, [currentUser, refreshUserData]);
+
+  // Wishlist Management (using Firestore for authenticated users)
+  const addToWishlist = useCallback(async (gift: Gift) => {
+    // Check if gift is already in wishlist
+    const isAlreadyInWishlist = wishlist.some(item => item.id === gift.id);
+    if (isAlreadyInWishlist) return;
+
+    if (currentUser) {
+      // User is authenticated - save to Firestore
+      try {
+        await addGiftToWishlist(currentUser.uid, gift);
+        // Refresh user data to get updated wishlist
+        await refreshUserData();
+      } catch (error) {
+        console.error('Error adding gift to wishlist:', error);
+        throw error;
+      }
+    } else {
+      // User is not authenticated - save to local state and localStorage
+      setWishlist(prevWishlist => [...prevWishlist, gift]);
+    }
+  }, [wishlist, currentUser, refreshUserData]);
+
+  const removeFromWishlist = useCallback(async (giftId: string) => {
+    if (currentUser) {
+      // User is authenticated - remove from Firestore
+      try {
+        await removeGiftFromWishlist(currentUser.uid, giftId);
+        // Refresh user data to get updated wishlist
+        await refreshUserData();
+      } catch (error) {
+        console.error('Error removing gift from wishlist:', error);
+        throw error;
+      }
+    } else {
+      // User is not authenticated - remove from local state
+      setWishlist(prevWishlist => prevWishlist.filter(gift => gift.id !== giftId));
+    }
+  }, [currentUser, refreshUserData]);
 
   // Firebase Auth State Listener
   useEffect(() => {
@@ -285,13 +345,60 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     if (currentUser && !authLoading) {
       refreshUserData();
+      
+      // Migrate localStorage wishlist to Firestore if user just logged in
+      const localWishlist = localStorage.getItem('wishlist');
+      if (localWishlist) {
+        try {
+          const wishlistItems = JSON.parse(localWishlist);
+          if (wishlistItems.length > 0) {
+            // Add each item to Firestore wishlist
+            wishlistItems.forEach(async (gift: Gift) => {
+              try {
+                await addGiftToWishlist(currentUser.uid, gift);
+              } catch (error) {
+                console.error('Error migrating wishlist item:', error);
+              }
+            });
+            // Clear localStorage after migration
+            localStorage.removeItem('wishlist');
+            // Refresh user data to get the updated wishlist from Firestore
+            setTimeout(() => refreshUserData(), 1000);
+          }
+        } catch (error) {
+          console.error('Error parsing localStorage wishlist:', error);
+        }
+      }
     }
   }, [currentUser, authLoading, refreshUserData]);
 
+  // Load all users when component mounts
+  useEffect(() => {
+    const loadAllUsers = async () => {
+      try {
+        console.log('Loading all users on app start...');
+        const allUsers = await getAllUsers();
+        console.log('Users loaded:', allUsers.length, allUsers);
+        
+        if (allUsers.length === 0) {
+          console.log('No users found in database - this is normal if no one has signed up yet');
+        }
+        
+        setUsers(allUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // On error, set empty array
+        setUsers([]);
+      }
+    };
+    
+    loadAllUsers();
+  }, []); // Empty dependency array - only run once on mount
+
   const getRecommendedGifts = (
-    occasion?: string,
-  priceRange?: { min: number; max: number },
-    profileUser?: User
+    _occasion?: string, // Using underscore to indicate intentionally unused parameter
+    priceRange?: { min: number; max: number },
+    profileUser?: UserData
   ): Gift[] => {
     let recs = [...gifts];
 
@@ -336,6 +443,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Sort by rating (or any other metric)
     recs.sort((a, b) => b.rating - a.rating);
 
+    console.log(profileUser, recs);
+
     return recs;
   };
   const value: AppContextType = {
@@ -350,16 +459,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     userData,
     refreshUserData,
     
+    // Users and Friends
+    users,
+    refreshUsers,
+    addFriend,
+    removeFriend,
+    
     // Existing App State
     gifts,
-    users,
-    user,
+    // user,
     cart,
     wishlist,
     reminders,
     isLoading,
-    addFriend,
-    removeFriend,
     addToCart,
     removeFromCart,
     updateCartQuantity,
@@ -367,8 +479,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     removeFromWishlist,
     addReminder,
     removeReminder,
-    login,
-    logout,
     getRecommendedGifts
   };
 

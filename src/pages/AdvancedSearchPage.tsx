@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useAuth, useApp } from '../context/AppContext';
 import GiftCard from '../components/common/GiftCard';
 import { Gift, OccasionType, OCCASIONS } from '../types';
 
@@ -15,7 +15,8 @@ const priceRanges = [
 ];
 
 const AdvancedSearchPage: React.FC = () => {
-  const { user, users, getRecommendedGifts } = useApp();
+  const { users, userData, getRecommendedGifts } = useApp();
+  const { currentUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -34,8 +35,8 @@ const AdvancedSearchPage: React.FC = () => {
 
     setOccasion(occ);
 
-    if (ints.length && user) {
-      const match = user.friends.find(fr => {
+    if (ints.length && currentUser) {
+      const match = userData?.friends.find(fr => {
         const full = users.find(u => u.mail === fr.mail);
         return (
           full != null &&
@@ -51,7 +52,7 @@ const AdvancedSearchPage: React.FC = () => {
         setNewHobbies(ints.join(', '));
       }
     }
-  }, [searchParams, user, users]);
+  }, [searchParams, userData, users]);
 
   // build interests
   const interests = useMemo<string[]>(() => {
@@ -66,11 +67,12 @@ const AdvancedSearchPage: React.FC = () => {
   const results: Gift[] = useMemo(() => {
     if (!occasion && interests.length === 0) return [];
 
-    const selectedPrice = priceRanges.find(p => p.id === priceRange); 
-    let recs = getRecommendedGifts(occasion, selectedPrice, user ?? undefined);
+    const selectedPrice = priceRanges.find(p => p.id === priceRange) || priceRanges[0]; 
+    let recs = getRecommendedGifts(occasion, selectedPrice, undefined);
+    //TODO add friend if selected to func
 
     return recs;
-  }, [occasion, interests, priceRange, getRecommendedGifts]);
+  }, [occasion, interests, priceRange, getRecommendedGifts, userData]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +109,7 @@ const AdvancedSearchPage: React.FC = () => {
               required
             >
               <option value="">Select…</option>
-              {user?.friends.map(f => (
+              {userData?.friends.map(f => (
                 <option key={f.mail} value={f.mail}>{f.name}</option>
               ))}
               <option value="__new">— Other / New Person —</option>

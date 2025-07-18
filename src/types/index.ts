@@ -9,20 +9,30 @@ export interface Gift {
   link: string; 
 }
 
-export interface LoginCredentials{
-  mail: string;
-  password: string;
-}
+// export interface User {
+//   mail: string;
+//   password: string;
+//   name: string;
+//   age: number;
+//   gender:string;
+//   hobbies: string[];
+//   friends: Friend[];
+//   profileImage: String;
+// }
 
-export interface User {
+export interface UserData {
+//   uid: string;
   mail: string;
-  password: string;
   name: string;
   age: number;
-  gender:string;
+  gender: string;
   hobbies: string[];
   friends: Friend[];
-  profileImage: String;
+  reminders?: Reminder[];  // Optional for backward compatibility
+  wishlist?: Gift[];       // Optional for backward compatibility
+//   profileImage: string;
+//   createdAt: string;
+//   updatedAt?: string;
 }
 
 export interface Friend {

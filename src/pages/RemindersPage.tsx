@@ -14,7 +14,7 @@ type FormState = {
 };
 
 const RemindersPage: React.FC = () => {
-  const { user, users, reminders, addReminder, removeReminder } = useApp();
+  const { userData, users, reminders, addReminder, removeReminder } = useApp();
   const navigate = useNavigate();
 
   const [form, setForm] = useState<FormState>({
@@ -26,7 +26,9 @@ const RemindersPage: React.FC = () => {
     hobbiesInput:  '',
   });
 
-  const handleAdd = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     // must pick friend OR customName, plus occasion & date
     if (
@@ -36,39 +38,48 @@ const RemindersPage: React.FC = () => {
       !form.date
     ) return;
 
-    // derive recipientName & hobbies[]
-    let recipientName: string;
-    let hobbies: string[];
+    setIsLoading(true);
+    
+    try {
+      // derive recipientName & hobbies[]
+      let recipientName: string;
+      let hobbies: string[];
 
-    if (form.isCustom) {
-      recipientName = form.customName.trim();
-      hobbies = form.hobbiesInput
-        .split(',')
-        .map(h => h.trim())
-        .filter(Boolean);
-    } else {
-      const full = users.find(u => u.mail === form.recipientMail);
-      recipientName = full ? full.name : form.recipientMail;
-      hobbies = full?.hobbies || [];
+      if (form.isCustom) {
+        recipientName = form.customName.trim();
+        hobbies = form.hobbiesInput
+          .split(',')
+          .map(h => h.trim())
+          .filter(Boolean);
+      } else {
+        const full = users.find(u => u.mail === form.recipientMail);
+        recipientName = full ? full.name : form.recipientMail;
+        hobbies = full?.hobbies || [];
+      }
+
+      await addReminder({
+        id:             Math.random().toString(36).substring(2,11),
+        recipientName,
+        occasion:       form.occasion,
+        date:           form.date,
+        hobbies,
+      } as Reminder);
+
+      // reset form on success
+      setForm({
+        recipientMail: '',
+        customName:    '',
+        isCustom:      false,
+        occasion:      '' as OccasionType,
+        date:          '',
+        hobbiesInput:  '',
+      });
+    } catch (error) {
+      console.error('Error adding reminder:', error);
+      alert('Failed to add reminder. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    addReminder({
-      id:             Math.random().toString(36).substring(2,11),
-      recipientName,
-      occasion:       form.occasion,
-      date:           form.date,
-      hobbies,
-    } as Reminder);
-
-    // reset
-    setForm({
-      recipientMail: '',
-      customName:    '',
-      isCustom:      false,
-      occasion:      '' as OccasionType,
-      date:          '',
-      hobbiesInput:  '',
-    });
   };
 
   const handleFindGift = (r: Reminder) => {
@@ -79,6 +90,15 @@ const RemindersPage: React.FC = () => {
       params.set('person', encodeURIComponent(r.recipientName));
     }
     navigate(`/advanced-search?${params.toString()}`);
+  };
+
+  const handleRemoveReminder = async (reminderId: string) => {
+    try {
+      await removeReminder(reminderId);
+    } catch (error) {
+      console.error('Error removing reminder:', error);
+      alert('Failed to remove reminder. Please try again.');
+    }
   };
 
   return (
@@ -113,7 +133,7 @@ const RemindersPage: React.FC = () => {
                     <span>Find Gift</span>
                   </button>
                   <button
-                    onClick={() => removeReminder(r.id)}
+                    onClick={() => handleRemoveReminder(r.id)}
                     className="text-red-500 hover:text-red-700 transition"
                     aria-label="Delete reminder"
                   >
@@ -134,7 +154,7 @@ const RemindersPage: React.FC = () => {
           </h2>
 
           {/* friend selector */}
-          {user?.friends?.length ? (
+          {userData?.friends?.length ? (
             <select
               value={form.isCustom ? '__custom' : form.recipientMail}
               onChange={e => {
@@ -149,7 +169,7 @@ const RemindersPage: React.FC = () => {
               required
             >
               <option value="">Select a friend…</option>
-              {user.friends.map(f => (
+              {userData.friends.map(f => (
                 <option key={f.mail} value={f.mail}>
                   {f.name}
                 </option>
@@ -159,7 +179,7 @@ const RemindersPage: React.FC = () => {
           ) : null}
 
           {/* custom name + hobbies */}
-          {(!user?.friends?.length || form.isCustom) && (
+          {(!userData?.friends?.length || form.isCustom) && (
             <>
               <input
                 type="text"
@@ -205,9 +225,10 @@ const RemindersPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-md transition"
+            disabled={isLoading}
+            className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium py-2 rounded-md transition"
           >
-            Add Reminder
+            {isLoading ? 'Adding...' : 'Add Reminder'}
           </button>
         </form>
       </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AppContext';
 import { auth } from '../../config/firebase';
-import { saveUserData, UserData } from '../../services/userService';
+import { saveUserData } from '../../services/userService';
+import { UserData } from '../../types';
 
 interface FirebaseAuthComponentProps {
   onSuccess?: () => void;
@@ -102,7 +103,7 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
             age: parseInt(age),
             gender: gender,
             hobbies: selectedHobbies,
-            // friends: [],
+            friends: [],
             // profileImage: '',
             // createdAt: new Date().toISOString()
           };
@@ -117,33 +118,9 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
         }
       }
       
-      // Get ID token from the authenticated user
-      if (auth.currentUser) {
-        try {
-          const idToken = await auth.currentUser.getIdToken();
-          const response = await fetch('http://localhost:3001/api/firebase-signin', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ idToken }),
-          });
-
-          if (response.ok) {
-            console.log('Firebase authentication successful with backend');
-          } else {
-            console.warn('Backend authentication failed, but Firebase auth succeeded');
-          }
-        } catch (fetchError) {
-          // Backend server might not be running, but Firebase auth succeeded
-          console.warn('Backend server not available, but Firebase auth succeeded:', fetchError);
-        }
-        
-        // Always call onSuccess if Firebase authentication succeeded
-        console.log('Firebase authentication successful');
-        onSuccess?.();
-      }
+      // Firebase authentication successful
+      console.log('Firebase authentication successful');
+      onSuccess?.();
     } catch (error: any) {
       setError(error.message);
     } finally {

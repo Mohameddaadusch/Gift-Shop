@@ -1,8 +1,8 @@
 // src/pages/FriendsPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { User, Friend } from '../types';
+import { useAuth, useApp } from '../context/AppContext';
+import { UserData } from '../types';
 import { Search, UserPlus, UserMinus, ArrowLeft } from 'lucide-react';
 
 const RELATION_OPTIONS = [
@@ -14,12 +14,15 @@ const RELATION_OPTIONS = [
 ];
 
 const FriendsPage: React.FC = () => {
-  const { user, users, addFriend, removeFriend } = useApp();
+  const { userData, users, addFriend, removeFriend, refreshUserData} = useApp();
+  const { currentUser} = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [relationMap, setRelationMap] = useState<Record<string,string>>({});
 
-  if (!user) {
+
+  // Check if user is authenticated
+  if (!currentUser) {
     return (
       <div className="mt-20 text-center text-gray-500">
         Please log in to manage your friends.
@@ -27,16 +30,36 @@ const FriendsPage: React.FC = () => {
     );
   }
 
-  const potential: User[] = search.trim()
+  // Show loading state while user data is being fetched
+  if (!userData) {
+    return (
+      <div className="mt-20 text-center text-gray-500">
+        <div className="space-y-4">
+          <p>Loading your profile...</p>
+          <button 
+            onClick={() => refreshUserData()}
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+          >
+            Retry Loading Profile
+          </button>
+          <p className="text-sm text-gray-400">
+            If this persists, you may need to complete your profile setup.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const potential: UserData[] = search.trim()
     ? users.filter(
         u =>
-          u.mail !== user.mail &&
-          !user.friends.some(f => f.mail === u.mail) &&
+          u.mail !== userData.mail &&
+          !userData.friends.some(f => f.mail === u.mail) &&
           u.name.toLowerCase().includes(search.toLowerCase())
       )
     : [];
 
-  const currentFriends = user.friends;
+  const currentFriends = userData.friends;
 
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-12">
@@ -69,20 +92,19 @@ const FriendsPage: React.FC = () => {
                 <div className="ml-4 flex-1">
                   <p className="font-medium text-gray-900">{f.name}</p>
                   <p className="text-sm text-gray-600">Email: {f.mail}</p>
-                  {'age' in f && (
-                    <p className="text-sm text-gray-600">Age: {(f as any).age}</p>
-                  )}
-                  {'hobbies' in f && (f as any).hobbies.length > 0 && (
-                    <p className="text-sm text-gray-600">
-                      Hobbies: {(f as any).hobbies.join(', ')}
-                    </p>
-                  )}
                   <p className="text-sm text-gray-600">
                     Relationship: <span className="font-medium">{f.relationShip}</span>
                   </p>
                 </div>
                 <button
-                  onClick={() => removeFriend(f.mail)}
+                  onClick={async () => {
+                    try {
+                      await removeFriend(f.mail);
+                    } catch (error) {
+                      console.error('Error removing friend:', error);
+                      alert('Failed to remove friend');
+                    }
+                  }}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-full transition"
                   aria-label="Remove friend"
                 >
@@ -117,7 +139,9 @@ const FriendsPage: React.FC = () => {
         </div>
 
         {search.trim() === '' ? (
-          <p className="text-gray-400">Start typing to find users…</p>
+          <div className="text-center space-y-2">
+            <p className="text-gray-400">Start typing to find users…</p>
+          </div>
         ) : potential.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
             {potential.map(u => (
@@ -130,9 +154,8 @@ const FriendsPage: React.FC = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">{u.name}</p>
-                  {'age' in u && (
-                    <p className="text-sm text-gray-600">Age: {u.age}</p>
-                  )}
+                  <p className="text-sm text-gray-600">Age: {u.age}</p>
+                  <p className="text-sm text-gray-600">Hobbies: {u.hobbies.join(', ')}</p>
                   <label className="block text-gray-700 text-sm mt-2">
                     Relationship:
                     <select
@@ -155,19 +178,25 @@ const FriendsPage: React.FC = () => {
                   </label>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const rel = relationMap[u.mail];
                     if (!rel) return alert('Please select a relationship.');
-                    addFriend({
-                      mail: u.mail,
-                      name: u.name,
-                      relationShip: rel
-                    });
-                    setRelationMap(prev => {
-                      const next = { ...prev };
-                      delete next[u.mail];
-                      return next;
-                    });
+                    
+                    try {
+                      await addFriend({
+                        mail: u.mail,
+                        name: u.name,
+                        relationShip: rel
+                      });
+                      setRelationMap(prev => {
+                        const next = { ...prev };
+                        delete next[u.mail];
+                        return next;
+                      });
+                    } catch (error) {
+                      console.error('Error adding friend:', error);
+                      alert('Failed to add friend');
+                    }
                   }}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-full transition"
                   aria-label="Add friend"

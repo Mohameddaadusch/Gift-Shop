@@ -10,6 +10,7 @@ const UserProfile: React.FC = () => {
   const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
 
+
   const handleLogout = async () => {
     try {
       setLoggingOut(true);
@@ -45,7 +46,7 @@ const UserProfile: React.FC = () => {
   const displayHobbies = userData?.hobbies || [];
 
   // friendly counts
-  // const friendCount = user.friends.length;
+  const friendCount = userData?.friends?.length || 0;
   const reminderCount = reminders.length;
 
   return (
@@ -90,7 +91,7 @@ const UserProfile: React.FC = () => {
           <div className="flex flex-col items-center">
             <Users size={24} className="text-primary-600 mb-2" />
             <span className="text-sm font-medium text-gray-600">Friends</span>
-            <span className="mt-1 text-xl font-bold text-gray-900">{69}</span>
+            <span className="mt-1 text-xl font-bold text-gray-900">{friendCount}</span>
           </div>
           <div className="flex flex-col items-center">
             <Gift size={24} className="text-primary-600 mb-2" />
@@ -125,9 +126,9 @@ const UserProfile: React.FC = () => {
                 <span>Manage Friends</span>
               </Link>
           </div>
-          {/* {user.friends.length > 0 ? (
+          {friendCount > 0 ? (
             <ul className="flex flex-wrap gap-4">
-              {user.friends.map((f) => (
+              {userData?.friends.map((f) => (
                 <li
                   key={f.mail}
                   className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-lg shadow-sm"
@@ -141,7 +142,7 @@ const UserProfile: React.FC = () => {
             </ul>
           ) : (
             <p className="text-gray-500">You have no friends yet.</p>
-          )} */}
+          )}
         </div>
 
         {/* Reminders CTA */}
