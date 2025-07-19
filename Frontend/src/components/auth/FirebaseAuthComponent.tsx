@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AppContext';
 import { auth } from '../../config/firebase';
 import { saveUserData } from '../../services/userService';
 import { UserData } from '../../types';
+import HobbySelector from '../common/HobbySelector';
 
 interface FirebaseAuthComponentProps {
   onSuccess?: () => void;
@@ -15,56 +16,11 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>([]);
-  const [hobbyInput, setHobbyInput] = useState('');
-  const [showHobbyDropdown, setShowHobbyDropdown] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Common hobbies list
-  const hobbiesOptions = [
-    'Reading', 'Photography', 'Cooking', 'Gaming', 'Music', 'Sports', 'Travel',
-    'Art & Crafts', 'Gardening', 'Fitness', 'Movies', 'Dancing', 'Writing',
-    'Technology', 'Fashion', 'Outdoor Activities', 'Board Games', 'Collecting',
-    'Learning Languages', 'Volunteering'
-  ];
-
   const { login, signup } = useAuth();
-
-  const handleHobbyInputChange = (value: string) => {
-    setHobbyInput(value);
-    setShowHobbyDropdown(value.length > 0);
-  };
-
-  const handleHobbySelect = (hobby: string) => {
-    if (!selectedHobbies.includes(hobby)) {
-      setSelectedHobbies(prev => [...prev, hobby]);
-    }
-    setHobbyInput('');
-    setShowHobbyDropdown(false);
-  };
-
-  const removeHobby = (hobbyToRemove: string) => {
-    setSelectedHobbies(prev => prev.filter(h => h !== hobbyToRemove));
-  };
-
-  const filteredHobbies = hobbiesOptions
-    .filter(hobby =>
-      hobby.toLowerCase().includes(hobbyInput.toLowerCase()) &&
-      !selectedHobbies.includes(hobby)
-    )
-    .sort((a, b) => {
-      const inputLower = hobbyInput.toLowerCase();
-      const aStartsWith = a.toLowerCase().startsWith(inputLower);
-      const bStartsWith = b.toLowerCase().startsWith(inputLower);
-      
-      // Prioritize hobbies that start with the input
-      if (aStartsWith && !bStartsWith) return -1;
-      if (!aStartsWith && bStartsWith) return 1;
-      
-      // If both start with input or both don't, sort alphabetically
-      return a.localeCompare(b);
-    });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,63 +177,13 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
               </select>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hobbies (Add at least one)
-              </label>
-              
-              {/* Selected hobbies display */}
-              {selectedHobbies.length > 0 && (
-                <div className="mb-3">
-                  <div className="flex flex-wrap gap-2">
-                    {selectedHobbies.map((hobby) => (
-                      <span
-                        key={hobby}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                      >
-                        {hobby}
-                        <button
-                          type="button"
-                          onClick={() => removeHobby(hobby)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Hobby input with autocomplete */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={hobbyInput}
-                  onChange={(e) => handleHobbyInputChange(e.target.value)}
-                  onFocus={() => setShowHobbyDropdown(hobbyInput.length > 0)}
-                  onBlur={() => setTimeout(() => setShowHobbyDropdown(false), 100)}
-                  placeholder="Type to search hobbies..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                
-                {/* Dropdown with filtered hobbies */}
-                {showHobbyDropdown && filteredHobbies.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
-                    {filteredHobbies.map((hobby) => (
-                      <button
-                        key={hobby}
-                        type="button"
-                        onClick={() => handleHobbySelect(hobby)}
-                        className="w-full text-left px-3 py-2 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
-                      >
-                        {hobby}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <HobbySelector
+              selectedHobbies={selectedHobbies}
+              onHobbiesChange={setSelectedHobbies}
+              label="Hobbies (Add at least one)"
+              required={true}
+              className="mb-6"
+            />
           </>
         )}
 
@@ -301,8 +207,6 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
               setAge('');
               setGender('');
               setSelectedHobbies([]);
-              setHobbyInput('');
-              setShowHobbyDropdown(false);
             }
             setError('');
           }}

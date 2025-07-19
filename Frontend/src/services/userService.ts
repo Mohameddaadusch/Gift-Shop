@@ -185,7 +185,7 @@ export const removeGiftFromWishlist = async (uid: string, giftId: string): Promi
     }
     
     // Find the gift object to remove
-    const giftToRemove = userData.wishlist?.find(g => g.id === giftId);
+    const giftToRemove = userData.wishlist?.find(g => g.asin === giftId);
     if (!giftToRemove) {
       throw new Error('Gift not found in wishlist');
     }

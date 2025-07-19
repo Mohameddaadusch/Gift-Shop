@@ -146,11 +146,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // — Stubs / placeholders for other methods (implement as you wish) —
     const addToCart = (gift: Gift, quantity = 1) => {
       setCart(prevCart => {
-        const existingItem = prevCart.find(item => item.gift.id === gift.id);
+        const existingItem = prevCart.find(item => item.gift.asin === gift.asin);
         
         if (existingItem) {
           return prevCart.map(item => 
-            item.gift.id === gift.id 
+            item.gift.asin === gift.asin 
               ? { ...item, quantity: item.quantity + quantity } 
               : item
           );
@@ -160,7 +160,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
     };
     const removeFromCart = (giftId: string) => {
-    setCart(prevCart => prevCart.filter(item => item.gift.id !== giftId));
+    setCart(prevCart => prevCart.filter(item => item.gift.asin !== giftId));
   };
     const updateCartQuantity = (giftId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -170,7 +170,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     setCart(prevCart => 
       prevCart.map(item => 
-        item.gift.id === giftId ? { ...item, quantity } : item
+        item.gift.asin === giftId ? { ...item, quantity } : item
       )
     );
   };
@@ -290,7 +290,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Wishlist Management (using Firestore for authenticated users)
   const addToWishlist = useCallback(async (gift: Gift) => {
     // Check if gift is already in wishlist
-    const isAlreadyInWishlist = wishlist.some(item => item.id === gift.id);
+    const isAlreadyInWishlist = wishlist.some(item => item.asin === gift.asin);
     if (isAlreadyInWishlist) return;
 
     if (currentUser) {
@@ -322,7 +322,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     } else {
       // User is not authenticated - remove from local state
-      setWishlist(prevWishlist => prevWishlist.filter(gift => gift.id !== giftId));
+      setWishlist(prevWishlist => prevWishlist.filter(gift => gift.asin !== giftId));
     }
   }, [currentUser, refreshUserData]);
 

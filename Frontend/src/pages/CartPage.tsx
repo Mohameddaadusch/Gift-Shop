@@ -16,7 +16,7 @@ const CartPage: React.FC = () => {
         <div className="space-y-6">
           {cart.map(({ gift, quantity }) => (
             <div
-              key={gift.id}
+              key={gift.asin}
               className="flex items-center justify-between border-b pb-4 gap-4"
             >
               <div className="flex items-center gap-4">
@@ -32,11 +32,11 @@ const CartPage: React.FC = () => {
                   type="number"
                   min={1}
                   value={quantity}
-                  onChange={(e) => updateCartQuantity(gift.id, parseInt(e.target.value))}
+                  onChange={(e) => updateCartQuantity(gift.asin, parseInt(e.target.value))}
                   className="w-16 border rounded px-2 py-1"
                 />
                 <button
-                  onClick={() => removeFromCart(gift.id)}
+                  onClick={() => removeFromCart(gift.asin)}
                   className="text-red-500 hover:underline"
                 >
                   Remove

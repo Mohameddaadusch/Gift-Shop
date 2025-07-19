@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useAuth, useApp } from '../context/AppContext';
 import GiftCard from '../components/common/GiftCard';
+import HobbySelector from '../components/common/HobbySelector';
 import { Gift, OccasionType, OCCASIONS } from '../types';
 
 const priceRanges = [
@@ -15,16 +16,22 @@ const priceRanges = [
 ];
 
 const AdvancedSearchPage: React.FC = () => {
-  const { users, userData, getRecommendedGifts } = useApp();
+  const { users, userData } = useApp();
   const { currentUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [selectedMail, setSelectedMail] = useState('');          // friend.mail or "__new"
   const [newName,      setNewName]      = useState('');          // free-text
-  const [newHobbies,   setNewHobbies]   = useState('');          // comma-sep
+  const [newHobbies,   setNewHobbies]   = useState<string[]>([]);// array of hobbies
+  const [newAge,       setNewAge]       = useState('');          // age input
+  const [newGender,    setNewGender]    = useState('');          // gender input
+  const [newRelationship, setNewRelationship] = useState('');    // relationship input
   const [occasion,     setOccasion]     = useState<OccasionType>('other');  
   const [priceRange,   setPriceRange]   = useState('');
+  const [results, setResults] = useState<Gift[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // hydrate from URL
   useEffect(() => {
@@ -32,8 +39,17 @@ const AdvancedSearchPage: React.FC = () => {
     const rawInts = searchParams.get('interests') || '';
     const ints    = rawInts.split(',').filter(Boolean);
     const person  = decodeURIComponent(searchParams.get('person') || '');
+    const price   = searchParams.get('priceRange') || '';
 
-    setOccasion(occ);
+    // Set occasion from URL
+    if (occ && OCCASIONS.includes(occ)) {
+      setOccasion(occ);
+    }
+
+    // Set price range from URL
+    if (price && priceRanges.some(pr => pr.id === price)) {
+      setPriceRange(price);
+    }
 
     if (ints.length && currentUser) {
       const match = userData?.friends.find(fr => {
@@ -49,10 +65,35 @@ const AdvancedSearchPage: React.FC = () => {
       } else {
         setSelectedMail('__new');
         setNewName(person);
-        setNewHobbies(ints.join(', '));
+        setNewHobbies(ints);
       }
     }
   }, [searchParams, userData, users]);
+
+  // Reset form fields when switching between friend and new person
+  useEffect(() => {
+    // Skip reset if we have URL parameters (indicating this is from a URL load)
+    const hasUrlParams = searchParams.get('occasion') || searchParams.get('interests') || searchParams.get('priceRange');
+    if (hasUrlParams) return;
+    
+    if (selectedMail === '__new') {
+      // Reset new person fields when switching to new person
+      setNewName('');
+      setNewAge('');
+      setNewGender('');
+      setNewRelationship('');
+      setNewHobbies([]);
+    }
+    // Clear results and error when switching person type
+    setResults([]);
+    setError(null);
+    
+    // Reset occasion and price when manually switching
+    if (selectedMail !== '') { // Only reset if there's actually a selection
+      setOccasion('other');
+      setPriceRange('');
+    }
+  }, [selectedMail, searchParams]);
 
   // build interests
   const interests = useMemo<string[]>(() => {
@@ -60,30 +101,103 @@ const AdvancedSearchPage: React.FC = () => {
       const full = users.find(u => u.mail === selectedMail);
       return full?.hobbies || [];
     }
-    return newHobbies.split(',').map(h => h.trim()).filter(Boolean);
+    return newHobbies;
   }, [selectedMail, newHobbies, users]);
 
-  // run recommendations + price
-  const results: Gift[] = useMemo(() => {
-    if (!occasion && interests.length === 0) return [];
-
-    const selectedPrice = priceRanges.find(p => p.id === priceRange) || priceRanges[0]; 
-    let recs = getRecommendedGifts(occasion, selectedPrice, undefined);
-    //TODO add friend if selected to func
-
-    return recs;
-  }, [occasion, interests, priceRange, getRecommendedGifts, userData]);
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const p = new URLSearchParams();
-    if (occasion)   p.set('occasion', occasion);
-    if (interests.length) {
-      p.set('interests', interests.join(','));
-      if (selectedMail === '__new') p.set('person', encodeURIComponent(newName));
+  // Get selected friend's wishlist
+  const friendWishlist = useMemo<Gift[]>(() => {
+    if (selectedMail && selectedMail !== '__new') {
+      const fullUser = users.find(u => u.mail === selectedMail);
+      return fullUser?.wishlist || [];
     }
-    if (priceRange) p.set('priceRange', priceRange);
-    navigate(`/advanced-search?${p.toString()}`);
+    return [];
+  }, [selectedMail, users]);
+
+  // State for API results
+
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!occasion || interests.length === 0) {
+      setError('Please select an occasion and person with interests');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get selected friend's data for age, gender, relationship
+      let age;
+      let gender;
+      let relationship;
+      if (selectedMail && selectedMail !== '__new') {
+        const friend = userData?.friends.find(f => f.mail === selectedMail);
+        const fullUser = users.find(u => u.mail === selectedMail);
+        if (friend && fullUser) {
+          age = fullUser.age;
+          gender = fullUser.gender.toLowerCase();
+          relationship = friend.relationShip;
+        }
+      } else {
+        // Use values from form for new person
+        age = parseInt(newAge) || 25;
+        gender = newGender.toLowerCase() || 'other';
+        relationship = newRelationship.toLowerCase() || 'friend';
+      }
+
+      // Get budget range
+      const selectedPrice = priceRanges.find(p => p.id === priceRange) || priceRanges[0];
+      const budget: [number, number] = [selectedPrice.min, selectedPrice.max === Infinity ? 1000000 : selectedPrice.max];
+
+      const requestBody = {
+        age,
+        gender,
+        hobbies: interests,
+        relationship,
+        occasion,
+        budget,
+      };
+
+      console.log("Sending request with:", requestBody);
+
+      const response = await fetch("http://127.0.0.1:8000/rank", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Recommended products:", data);
+      
+      // Convert API response to Gift format if needed
+      // This might need adjustment based on your API response format
+      setResults(data);
+
+      // Update URL
+      const p = new URLSearchParams();
+      if (occasion) p.set('occasion', occasion);
+      if (interests.length) {
+        p.set('interests', interests.join(','));
+        if (selectedMail === '__new') p.set('person', encodeURIComponent(newName));
+      }
+      if (priceRange) p.set('priceRange', priceRange);
+      navigate(`/advanced-search?${p.toString()}`);
+
+    } catch (err) {
+      console.error("Error fetching recommendations:", err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch recommendations');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -127,13 +241,52 @@ const AdvancedSearchPage: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
                 required
               />
-              <input
-                type="text"
-                placeholder="Hobbies (comma separated)"
-                value={newHobbies}
-                onChange={e => setNewHobbies(e.target.value)}
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Age"
+                  value={newAge}
+                  onChange={e => setNewAge(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  min="1"
+                  max="120"
+                  required
+                />
+                <select
+                  value={newGender}
+                  onChange={e => setNewGender(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <select
+                value={newRelationship}
+                onChange={e => setNewRelationship(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
                 required
+              >
+                <option value="">Select Relationship</option>
+                <option value="friend">Friend</option>
+                <option value="family">Family</option>
+                <option value="colleague">Colleague</option>
+                <option value="partner">Partner</option>
+                <option value="spouse">Spouse</option>
+                <option value="parent">Parent</option>
+                <option value="child">Child</option>
+                <option value="sibling">Sibling</option>
+                <option value="other">Other</option>
+              </select>
+              <HobbySelector
+                selectedHobbies={newHobbies}
+                onHobbiesChange={setNewHobbies}
+                placeholder="Type to search hobbies..."
+                label=""
+                required={true}
               />
             </div>
           )}
@@ -187,21 +340,40 @@ const AdvancedSearchPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full flex justify-center items-center bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-md font-medium"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white py-3 rounded-md font-medium"
           >
             <Search size={20} className="mr-2" />
-            Find Gifts
+            {isLoading ? 'Finding Gifts...' : 'Find Gifts'}
           </button>
+
+          {error && (
+            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
         </form>
 
-        {/* Results */}
+        {/* Friend's Wishlist */}
+        {friendWishlist.length > 0 && (
+          <section className="space-y-6">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {userData?.friends.find(f => f.mail === selectedMail)?.name}'s Wishlist ({friendWishlist.length} item{friendWishlist.length > 1 ? 's' : ''})
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {friendWishlist.map(g => <GiftCard key={g.asin} gift={g} />)}
+            </div>
+          </section>
+        )}
+
+        {/* API Results */}
         {results.length > 0 && (
           <section className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">
-              {results.length} Result{results.length > 1 ? 's' : ''}
+              Recommended Gifts ({results.length} result{results.length > 1 ? 's' : ''})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map(g => <GiftCard key={g.id} gift={g} />)}
+              {results.map(g => <GiftCard key={g.asin} gift={g} />)}
             </div>
           </section>
         )}

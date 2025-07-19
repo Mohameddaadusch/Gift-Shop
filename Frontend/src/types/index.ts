@@ -1,12 +1,12 @@
 export interface Gift {
-  id: string;
-  name: string;
-  imageUrl: string;
-  rating: number;
+  asin: string;
+  title: string;
+  imgUrl: string;
+  stars: number;
   reviews: number;
   price: number;
-  categories: string[];
-  link: string; 
+  category: string[];
+  productURL: string; 
 }
 
 // export interface User {

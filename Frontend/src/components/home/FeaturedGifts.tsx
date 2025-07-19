@@ -9,7 +9,7 @@ const FeaturedGifts: React.FC = () => {
   
   // Get top rated gifts (limited to 4)
   const featuredGifts = [...gifts]
-    .sort((a, b) => b.rating - a.rating)
+    .sort((a, b) => b.stars - a.stars)
     .slice(0, 4);
   
   return (
@@ -32,7 +32,7 @@ const FeaturedGifts: React.FC = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {featuredGifts.map((gift) => (
-            <GiftCard key={gift.id} gift={gift} featured />
+            <GiftCard key={gift.asin} gift={gift} featured />
           ))}
         </div>
       </div>
