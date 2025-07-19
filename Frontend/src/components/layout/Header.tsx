@@ -19,16 +19,6 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  {/* 
-  // Handle search submission
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
-      setSearchOpen(false);
-    }
-  };
-  */}
 
   const totalCartItems = cart.reduce((total, item) => total + item.quantity, 0);
 
@@ -54,18 +44,6 @@ const Header: React.FC = () => {
             <Link to="/all-gifts" className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors">
               Browse Gifts
             </Link>
-            <Link to="/?occasions=all" className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors">
-              Occasions
-            </Link>
-            {/*
-            <button 
-              onClick={() => setSearchOpen(true)}
-              className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors flex items-center"
-            >
-              <Search size={18} className="mr-1" />
-              <span>Search</span>
-            </button>
-            */}
             <Link to="/userprofile" className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors">
               My Profile
             </Link>

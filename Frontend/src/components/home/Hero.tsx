@@ -1,26 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gift, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const occasions = [
   'Birthday', 'Anniversary', 'Graduation', 'Wedding', 'Housewarming'
 ];
 
 const Hero: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('Occasions');
   const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const handleOccasionClick = (occasion: string) => {
-    navigate(`/?occasion=${encodeURIComponent(occasion.toLowerCase())}`);
-  };
 
   return (
     <section className="relative bg-gradient-to-b from-primary-50 to-white py-12 sm:py-16 lg:py-20">

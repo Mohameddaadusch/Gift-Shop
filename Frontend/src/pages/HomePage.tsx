@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import Hero from '../components/home/Hero';
 import FeaturedGifts from '../components/home/FeaturedGifts';
 import CategoryShowcase from '../components/home/CategoryShowcase';
-import OccasionBanner from '../components/home/OccasionBanner';
 import ReminderCTA from '../components/home/ReminderCTA';
 
 const HomePage: React.FC = () => {
@@ -37,7 +36,6 @@ const HomePage: React.FC = () => {
       <Hero />
       <FeaturedGifts />
       <CategoryShowcase />
-      <OccasionBanner />
       <ReminderCTA />
     </div>
   );

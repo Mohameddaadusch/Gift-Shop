@@ -20,10 +20,11 @@ const CartPage: React.FC = () => {
               className="flex items-center justify-between border-b pb-4 gap-4"
             >
               <div className="flex items-center gap-4">
-                <img src={gift.imageUrl} alt={gift.name} className="w-24 h-24 object-cover rounded" />
+                <img src={gift.imgUrl} alt={gift.title} className="w-24 h-24 object-cover rounded" />
                 <div>
-                  <h2 className="text-lg font-semibold">{gift.name}</h2>
-                  <p className="text-sm text-gray-600">${gift.price.toFixed(2)}</p>
+                    <h2 className="text-sm font-medium">{gift.title}</h2>
+                    <p className="text-xs text-gray-600">${gift.price.toFixed(2)}</p>
+
                 </div>
               </div>
 
