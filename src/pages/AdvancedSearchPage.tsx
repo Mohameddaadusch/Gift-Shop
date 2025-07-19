@@ -92,7 +92,7 @@ const AdvancedSearchPage: React.FC = () => {
         <header className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">Find the Perfect Gift</h1>
           <p className="text-gray-600">
-            Personalized recommendations based on your friends’ interests or custom inputs.
+            Personalized recommendations based on your friends' interests or custom inputs.
           </p>
         </header>
 
@@ -159,7 +159,7 @@ const AdvancedSearchPage: React.FC = () => {
           {/* Budget */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              What’s your budget?
+              What's your budget?
             </label>
             <div className="grid grid-cols-2 gap-2">
               {priceRanges.map(pr => (

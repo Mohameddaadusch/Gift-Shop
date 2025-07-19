@@ -28,8 +28,8 @@ export interface UserData {
   gender: string;
   hobbies: string[];
   friends: Friend[];
-  reminders?: Reminder[];  // Optional for backward compatibility
-  wishlist?: Gift[];       // Optional for backward compatibility
+  reminders: Reminder[];
+  wishlist: Gift[];  
 //   profileImage: string;
 //   createdAt: string;
 //   updatedAt?: string;

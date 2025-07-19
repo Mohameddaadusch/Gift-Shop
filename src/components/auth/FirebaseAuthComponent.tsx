@@ -104,6 +104,8 @@ const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess
             gender: gender,
             hobbies: selectedHobbies,
             friends: [],
+            reminders: [],
+            wishlist: [],
             // profileImage: '',
             // createdAt: new Date().toISOString()
           };

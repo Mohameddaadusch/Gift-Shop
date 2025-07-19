@@ -1,17 +1,17 @@
 import React from 'react';
 import { Calendar, Gift, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AppContext';
 
 const ReminderCTA: React.FC = () => {
-  const { user } = useApp();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   
   const handleClick = () => {
-    if (user) {
-      navigate('/profile#reminders');
+    if (currentUser) {
+      navigate('/reminders');
     } else {
-      navigate('/login?returnTo=/profile#reminders');
+      navigate('/login?returnTo=/reminders');
     }
   };
   
