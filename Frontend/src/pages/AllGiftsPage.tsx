@@ -518,14 +518,14 @@ const AllGiftsPage: React.FC = () => {
               <GiftCard
                 key={gift.asin}
                 gift={{
-                  id: gift.asin,
-                  name: gift.title,
-                  imageUrl: gift.imgUrl,
-                  rating: gift.stars,
+                  asin: gift.asin,
+                  title: gift.title,
+                  imgUrl: gift.imgUrl,
+                  stars: gift.stars,
                   reviews: gift.reviews,
                   price: gift.price,
-                  categories: [unifiedCat],  // pass in the single unified category
-                  link: gift.productURL,
+                  category: [unifiedCat],  // pass in the single unified category
+                  productURL: gift.productURL,
                 }}
               />
             );

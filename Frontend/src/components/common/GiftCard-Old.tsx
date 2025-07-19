@@ -12,7 +12,7 @@ interface GiftCardProps {
 const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useApp();
   
-  const isInWishlist = wishlist.some(item => item.id === gift.id);
+  const isInWishlist = wishlist.some(item => item.asin === gift.asin);
   
   return (
     <div 
@@ -22,8 +22,8 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
     >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         <img 
-          src={gift.imageUrl} 
-          alt={gift.name}
+          src={gift.imgUrl} 
+          alt={gift.title}
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
@@ -34,7 +34,7 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
               e.preventDefault();
               try {
                 if (isInWishlist) {
-                  await removeFromWishlist(gift.id);
+                  await removeFromWishlist(gift.asin);
                 } else {
                   await addToWishlist(gift);
                 }
@@ -52,17 +52,17 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
           </button>
         </div>
         
-        {gift.categories[0] && (
+        {gift.category[0] && (
           <div className="absolute top-2 left-2">
-            <span className="badge badge-primary">{gift.categories[0]}</span>
+            <span className="badge badge-primary">{gift.category[0]}</span>
           </div>
         )}
       </div>
       
       <div className="p-4">
-        <Link to={`/gift/${gift.id}`} className="focus-ring">
+        <Link to={`/gift/${gift.asin}`} className="focus-ring">
           <h3 className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors mb-1">
-            {gift.name}
+            {gift.title}
           </h3>
         </Link>
         {/* 

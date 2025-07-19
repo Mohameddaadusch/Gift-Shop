@@ -10,7 +10,7 @@ interface GiftCardProps {
 
 const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
   const { addToCart, addToWishlist,removeFromWishlist, wishlist } = useApp();
-  const isInWishlist = wishlist.some(item => item.id === gift.id);
+  const isInWishlist = wishlist.some(item => item.asin === gift.asin);
 
   return (
     <div
@@ -20,10 +20,10 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-gray-100">
-        <a href={gift.link} target="_blank" rel="noopener noreferrer">
+        <a href={gift.productURL} target="_blank" rel="noopener noreferrer">
           <img
-            src={gift.imageUrl}
-            alt={gift.name}
+            src={gift.imgUrl}
+            alt={gift.title}
             className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300"
           />
         </a>
@@ -36,7 +36,7 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
               e.preventDefault();
               try {
                 if (isInWishlist) {
-                  await removeFromWishlist(gift.id);
+                  await removeFromWishlist(gift.asin);
                 } else {
                   await addToWishlist(gift);
                 }
@@ -54,9 +54,9 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
           </button>
         </div>
 
-        {gift.categories[0] && (
+        {gift.category && gift.category.length > 0 && (
           <div className="absolute top-2 left-2">
-            <span className="badge badge-primary">{gift.categories[0]}</span>
+            <span className="badge badge-primary">{gift.category[0]}</span>
           </div>
         )}
       </div>
@@ -64,19 +64,19 @@ const GiftCard: React.FC<GiftCardProps> = ({ gift, featured = false }) => {
       {/* Content */}
       <div className="flex flex-col flex-1 p-4">
         <a
-          href={gift.link}
+          href={gift.productURL}
           target="_blank"
           rel="noopener noreferrer"
           className="focus-ring"
         >
           <h3 className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors mb-1 line-clamp-3">
-            {gift.name}
+            {gift.title}
           </h3>
         </a>
 
         <div className="flex items-center mb-2">
           <Star size={16} className="fill-warning-400 text-warning-400" />
-          <span className="ml-1 text-sm text-gray-700">{gift.rating}</span>
+          <span className="ml-1 text-sm text-gray-700">{gift.stars}</span>
         </div>
 
         <p className="text-base font-medium text-gray-900 mb-4">${gift.price.toFixed(2)}</p>
