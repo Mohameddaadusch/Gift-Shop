@@ -8,7 +8,7 @@ import { Search, UserPlus, UserMinus, ArrowLeft } from 'lucide-react';
 const RELATION_OPTIONS = [
   'Family',
   'Friend',
-  'Colleague',
+  'Coworker',
   'Acquaintance',
   'Other'
 ];

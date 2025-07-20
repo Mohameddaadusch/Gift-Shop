@@ -273,7 +273,7 @@ const AdvancedSearchPage: React.FC = () => {
                 <option value="">Select Relationship</option>
                 <option value="friend">Friend</option>
                 <option value="family">Family</option>
-                <option value="colleague">Colleague</option>
+                <option value="coworker">Coworker</option>
                 <option value="partner">Partner</option>
                 <option value="spouse">Spouse</option>
                 <option value="parent">Parent</option>
