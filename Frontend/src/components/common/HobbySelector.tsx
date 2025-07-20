@@ -138,6 +138,7 @@ const HobbySelector: React.FC<HobbySelectorProps> = ({
               <button
                 key={hobby}
                 type="button"
+                onMouseDown={(e) => e.preventDefault()} // Prevent blur from firing
                 onClick={() => handleHobbySelect(hobby)}
                 className="w-full text-left px-3 py-2 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
               >
