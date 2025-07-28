@@ -140,4 +140,4 @@ def rank_products(user_data, hobbies_m, occasions_m, user_relationship_m, prods,
             scores.append((score, product))
 
         ranked_scores_and_prods = sorted(scores, key=lambda x: x[0], reverse=True)  
-        return [sp[1] for sp in ranked_scores_and_prods]
+        return ranked_scores_and_prods # list of tuples of (score ∈ [0, 1], product = {...}) - sorted by score

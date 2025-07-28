@@ -44,6 +44,7 @@ class UserProfile(BaseModel):
     occasion: str
     budget: Tuple[float, float]     # (min_cost, max_cost)
 
+# returns list of tuples of (score ∈ [0, 1], product = {...}) - sorted by score (high to low)
 @app.post("/rank")
 def get_ranked_products(profile: UserProfile):
     try:
