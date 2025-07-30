@@ -6,11 +6,16 @@ import { UserData } from '../types';
 import { Search, UserPlus, UserMinus, ArrowLeft } from 'lucide-react';
 
 const RELATION_OPTIONS = [
-  'Family',
-  'Friend',
-  'Coworker',
-  'Acquaintance',
-  'Other'
+  'friend',
+  'family',
+  'grandparent',
+  'coworker',
+  'partner',
+  'spouse',
+  'parent',
+  'child',
+  'sibling',
+  'other'
 ];
 
 const FriendsPage: React.FC = () => {

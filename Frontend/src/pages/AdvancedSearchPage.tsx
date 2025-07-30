@@ -28,8 +28,11 @@ const AdvancedSearchPage: React.FC = () => {
   const [newGender,    setNewGender]    = useState('');          // gender input
   const [newRelationship, setNewRelationship] = useState('');    // relationship input
   const [occasion,     setOccasion]     = useState<OccasionType>('other');  
+  const [customOccasion, setCustomOccasion] = useState('');
   const [priceRange,   setPriceRange]   = useState('');
   const [results, setResults] = useState<Gift[]>([]);
+  const [allResults, setAllResults] = useState<{ score: number; gift: Gift }[]>([]);
+  const [showLowScoreResults, setShowLowScoreResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +47,11 @@ const AdvancedSearchPage: React.FC = () => {
     // Set occasion from URL
     if (occ && OCCASIONS.includes(occ)) {
       setOccasion(occ);
+      setCustomOccasion('');
+    } else if (occ) {
+      // If it's not in the predefined occasions, treat it as a custom occasion
+      setOccasion('other');
+      setCustomOccasion(occ);
     }
 
     // Set price range from URL
@@ -68,7 +76,7 @@ const AdvancedSearchPage: React.FC = () => {
         setNewHobbies(ints);
       }
     }
-  }, [searchParams, userData, users]);
+  }, [searchParams, userData, users, currentUser]);
 
   // Reset form fields when switching between friend and new person
   useEffect(() => {
@@ -86,11 +94,14 @@ const AdvancedSearchPage: React.FC = () => {
     }
     // Clear results and error when switching person type
     setResults([]);
+    setAllResults([]);
+    setShowLowScoreResults(false);
     setError(null);
     
     // Reset occasion and price when manually switching
     if (selectedMail !== '') { // Only reset if there's actually a selection
       setOccasion('other');
+      setCustomOccasion('');
       setPriceRange('');
     }
   }, [selectedMail, searchParams]);
@@ -113,14 +124,22 @@ const AdvancedSearchPage: React.FC = () => {
     return [];
   }, [selectedMail, users]);
 
-  // State for API results
+  // Helper functions for managing search results
+  const handleShowMoreResults = () => {
+    setShowLowScoreResults(true);
+    setResults(allResults.map((item: { score: number; gift: Gift }) => item.gift));
+  };
 
+  // Calculate display counts
+  const highScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score >= 0.7).length;
+  const lowScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score < 0.7).length;
+  const hasLowScoreResults = lowScoreCount > 0 && !showLowScoreResults;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
-    if (!occasion || interests.length === 0) {
+    if ((!occasion || (occasion === 'other' && !customOccasion.trim())) || interests.length === 0) {
       setError('Please select an occasion and person with interests');
       return;
     }
@@ -157,7 +176,7 @@ const AdvancedSearchPage: React.FC = () => {
         gender,
         hobbies: interests,
         relationship,
-        occasion,
+        occasion: occasion === 'other' ? customOccasion.trim() : occasion,
         budget,
       };
 
@@ -178,13 +197,31 @@ const AdvancedSearchPage: React.FC = () => {
       const data = await response.json();
       console.log("Recommended products:", data);
       
-      // Convert API response to Gift format if needed
-      // This might need adjustment based on your API response format
-      setResults(data);
+      // Convert API response from sorted pairs [score, product] to Gift format
+      // Backend now returns array of [score, product] pairs sorted by score descending
+      const SCORE_THRESHOLD = 0.7;
+      const resultsWithScores: { score: number; gift: Gift }[] = data.map((pair: [number, any]) => ({
+        score: pair[0],
+        gift: pair[1]
+      }));
+      
+      // Separate high-score and low-score results
+      const highScoreResults = resultsWithScores.filter((item: { score: number; gift: Gift }) => item.score >= SCORE_THRESHOLD);
+      
+      console.log(`High score results (>= ${SCORE_THRESHOLD}):`, highScoreResults.length);
+      console.log(`Low score results (< ${SCORE_THRESHOLD}):`, resultsWithScores.length - highScoreResults.length);
+      
+      // Store all results for potential "show more" functionality
+      setAllResults(resultsWithScores);
+      
+      // Initially show only high-score results
+      setResults(highScoreResults.map((item: { score: number; gift: Gift }) => item.gift));
+      setShowLowScoreResults(false);
 
       // Update URL
       const p = new URLSearchParams();
-      if (occasion) p.set('occasion', occasion);
+      const finalOccasion = occasion === 'other' ? customOccasion.trim() : occasion;
+      if (finalOccasion) p.set('occasion', finalOccasion);
       if (interests.length) {
         p.set('interests', interests.join(','));
         if (selectedMail === '__new') p.set('person', encodeURIComponent(newName));
@@ -235,7 +272,7 @@ const AdvancedSearchPage: React.FC = () => {
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder="Person’s Name"
+                placeholder="Person's Name"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -273,6 +310,7 @@ const AdvancedSearchPage: React.FC = () => {
                 <option value="">Select Relationship</option>
                 <option value="friend">Friend</option>
                 <option value="family">Family</option>
+                <option value="grandparent">Grandparent</option>
                 <option value="coworker">Coworker</option>
                 <option value="partner">Partner</option>
                 <option value="spouse">Spouse</option>
@@ -294,19 +332,38 @@ const AdvancedSearchPage: React.FC = () => {
           {/* Occasion */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              What’s the occasion?
+              What's the occasion?
             </label>
             <select
               value={occasion}
-              onChange={e => setOccasion(e.target.value as OccasionType)}
+              onChange={e => {
+                setOccasion(e.target.value as OccasionType);
+                if (e.target.value !== 'other') {
+                  setCustomOccasion('');
+                }
+              }}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               required
             >
               <option value="">Select…</option>
-              {OCCASIONS.map(o => (
+              {OCCASIONS.filter(o => o !== 'other').map(o => (
                 <option key={o} value={o}>{o}</option>
               ))}
+              <option value="other">Other (specify below)</option>
             </select>
+            
+            {/* Custom occasion input */}
+            {occasion === 'other' && (
+              <input
+                type="text"
+                placeholder="Enter custom occasion..."
+                value={customOccasion}
+                onChange={e => setCustomOccasion(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2"
+                required
+                maxLength={50}
+              />
+            )}
           </div>
 
           {/* Budget */}
@@ -371,10 +428,30 @@ const AdvancedSearchPage: React.FC = () => {
           <section className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">
               Recommended Gifts ({results.length} result{results.length > 1 ? 's' : ''})
+              {!showLowScoreResults && highScoreCount > 0 && (
+                <span className="text-sm font-normal text-gray-600 ml-2">
+                  (Showing {highScoreCount} highly relevant gift{highScoreCount > 1 ? 's' : ''})
+                </span>
+              )}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map(g => <GiftCard key={g.asin} gift={g} />)}
             </div>
+            
+            {/* Show More Button */}
+            {hasLowScoreResults && (
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={handleShowMoreResults}
+                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <span>Show {lowScoreCount} Less Relevant Gift{lowScoreCount > 1 ? 's' : ''}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </section>
         )}
       </div>
