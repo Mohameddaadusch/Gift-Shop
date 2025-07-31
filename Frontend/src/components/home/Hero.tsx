@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
-const occasions = [
-  'Birthday', 'Anniversary', 'Graduation', 'Wedding', 'Housewarming'
-];
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();

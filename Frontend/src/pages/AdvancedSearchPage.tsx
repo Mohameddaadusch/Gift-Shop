@@ -35,6 +35,7 @@ const AdvancedSearchPage: React.FC = () => {
   const [showLowScoreResults, setShowLowScoreResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const SCORE_THRESHOLD = 0.6;
 
   // hydrate from URL
   useEffect(() => {
@@ -131,8 +132,8 @@ const AdvancedSearchPage: React.FC = () => {
   };
 
   // Calculate display counts
-  const highScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score >= 0.7).length;
-  const lowScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score < 0.7).length;
+  const highScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score >= SCORE_THRESHOLD).length;
+  const lowScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score < SCORE_THRESHOLD).length;
   const hasLowScoreResults = lowScoreCount > 0 && !showLowScoreResults;
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -199,7 +200,7 @@ const AdvancedSearchPage: React.FC = () => {
       
       // Convert API response from sorted pairs [score, product] to Gift format
       // Backend now returns array of [score, product] pairs sorted by score descending
-      const SCORE_THRESHOLD = 0.7;
+      
       const resultsWithScores: { score: number; gift: Gift }[] = data.map((pair: [number, any]) => ({
         score: pair[0],
         gift: pair[1]
@@ -428,11 +429,6 @@ const AdvancedSearchPage: React.FC = () => {
           <section className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">
               Recommended Gifts ({results.length} result{results.length > 1 ? 's' : ''})
-              {!showLowScoreResults && highScoreCount > 0 && (
-                <span className="text-sm font-normal text-gray-600 ml-2">
-                  (Showing {highScoreCount} highly relevant gift{highScoreCount > 1 ? 's' : ''})
-                </span>
-              )}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map(g => <GiftCard key={g.asin} gift={g} />)}
