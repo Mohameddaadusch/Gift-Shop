@@ -1,0 +1,222 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AppContext';
+import { auth } from '../../config/firebase';
+import { saveUserData } from '../../services/userService';
+import { UserData } from '../../types';
+import HobbySelector from '../common/HobbySelector';
+
+interface FirebaseAuthComponentProps {
+  onSuccess?: () => void;
+}
+
+const FirebaseAuthComponent: React.FC<FirebaseAuthComponentProps> = ({ onSuccess }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [selectedHobbies, setSelectedHobbies] = useState<string[]>([]);
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const { login, signup } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!email || !password) return;
+    
+    // Additional validation for signup
+    if (!isLogin) {
+      if (!name || !age || !gender || selectedHobbies.length === 0) {
+        setError('Please fill in all required fields for signup');
+        return;
+      }
+      
+      if (parseInt(age) < 13 || parseInt(age) > 120) {
+        setError('Please enter a valid age between 13 and 120');
+        return;
+      }
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        await signup(email, password);
+        
+        // Save additional user data to Firestore after successful signup
+        if (auth.currentUser) {
+          const userData: UserData = {
+            // uid: auth.currentUser.uid,
+            mail: email,
+            name: name,
+            age: parseInt(age),
+            gender: gender,
+            hobbies: selectedHobbies,
+            friends: [],
+            reminders: [],
+            wishlist: [],
+            // profileImage: '',
+            // createdAt: new Date().toISOString()
+          };
+
+          try {
+            await saveUserData(userData, auth.currentUser.uid);
+            console.log('User data saved to Firestore successfully');
+          } catch (firestoreError) {
+            console.error('Failed to save user data to Firestore:', firestoreError);
+            // Don't throw error here as authentication was successful
+          }
+        }
+      }
+      
+      // Firebase authentication successful
+      console.log('Firebase authentication successful');
+      onSuccess?.();
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={`max-w-md mx-auto bg-white p-6 rounded-lg shadow-md ${!isLogin ? 'max-w-lg' : ''}`}>
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        {isLogin ? 'Sign In' : 'Sign Up'}
+      </h2>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        {!isLogin && (
+          <>
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
+                Age
+              </label>
+              <input
+                type="number"
+                id="age"
+                min="13"
+                max="120"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                Gender
+              </label>
+              <select
+                id="gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <HobbySelector
+              selectedHobbies={selectedHobbies}
+              onHobbiesChange={setSelectedHobbies}
+              label="Hobbies (Add at least one)"
+              required={true}
+              className="mb-6"
+            />
+          </>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+        </button>
+      </form>
+
+      <div className="mt-4 text-center">
+        <button
+          type="button"
+          onClick={() => {
+            setIsLogin(!isLogin);
+            // Clear additional fields when switching modes
+            if (!isLogin) {
+              setName('');
+              setAge('');
+              setGender('');
+              setSelectedHobbies([]);
+            }
+            setError('');
+          }}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default FirebaseAuthComponent;
