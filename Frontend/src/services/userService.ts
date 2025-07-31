@@ -61,7 +61,6 @@ export const getAllUsers = async (): Promise<UserData[]> => {
     const users: UserData[] = [];
     
     usersSnapshot.forEach((doc) => {
-      console.log('User doc:', doc.id, doc.data());
       users.push(doc.data() as UserData);
     });
     

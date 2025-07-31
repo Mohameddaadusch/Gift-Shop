@@ -27,7 +27,7 @@ const AdvancedSearchPage: React.FC = () => {
   const [newAge,       setNewAge]       = useState('');          // age input
   const [newGender,    setNewGender]    = useState('');          // gender input
   const [newRelationship, setNewRelationship] = useState('');    // relationship input
-  const [occasion,     setOccasion]     = useState<OccasionType>('other');  
+  const [occasion,     setOccasion]     = useState<OccasionType>('' as OccasionType);  
   const [customOccasion, setCustomOccasion] = useState('');
   const [priceRange,   setPriceRange]   = useState('');
   const [results, setResults] = useState<Gift[]>([]);
@@ -36,6 +36,7 @@ const AdvancedSearchPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const SCORE_THRESHOLD = 0.6;
+  const MIN_SCORE_THRESHOLD = 0.35;
 
   // hydrate from URL
   useEffect(() => {
@@ -101,7 +102,7 @@ const AdvancedSearchPage: React.FC = () => {
     
     // Reset occasion and price when manually switching
     if (selectedMail !== '') { // Only reset if there's actually a selection
-      setOccasion('other');
+      setOccasion('' as OccasionType);
       setCustomOccasion('');
       setPriceRange('');
     }
@@ -132,7 +133,6 @@ const AdvancedSearchPage: React.FC = () => {
   };
 
   // Calculate display counts
-  const highScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score >= SCORE_THRESHOLD).length;
   const lowScoreCount = allResults.filter((item: { score: number; gift: Gift }) => item.score < SCORE_THRESHOLD).length;
   const hasLowScoreResults = lowScoreCount > 0 && !showLowScoreResults;
 
@@ -204,7 +204,7 @@ const AdvancedSearchPage: React.FC = () => {
       const resultsWithScores: { score: number; gift: Gift }[] = data.map((pair: [number, any]) => ({
         score: pair[0],
         gift: pair[1]
-      }));
+      })).filter((item: { score: number; gift: Gift }) => item.score >= MIN_SCORE_THRESHOLD);
       
       // Separate high-score and low-score results
       const highScoreResults = resultsWithScores.filter((item: { score: number; gift: Gift }) => item.score >= SCORE_THRESHOLD);
